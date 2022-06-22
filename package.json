@@ -167,7 +167,7 @@
     "@cypress/code-coverage": "^3.9.10",
     "@mdx-js/loader": "^1.6.22",
     "@next/bundle-analyzer": "^11.1.0",
-    "@next/mdx": "^11.1.0",
+    "@next/mdx": "^12.1.6",
     "@storybook/addon-actions": "^6.4.17",
     "@storybook/addon-essentials": "^6.4.17",
     "@storybook/addon-links": "^6.4.17",
