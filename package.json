@@ -87,7 +87,7 @@
     "graphql-tag": "^2.12.5",
     "groq": "^2.15.0",
     "gsap": "^3.7.1",
-    "hls.js": "^1.0.9",
+    "hls.js": "^1.1.5",
     "honeycomb-beeline": "^2.7.4",
     "humanize-list": "^1.0.1",
     "isomorphic-fetch": "^3.0.0",
