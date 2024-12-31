@@ -17,13 +17,20 @@ export type SectionResource = LessonResource & {
 }
 
 export type CardResource = Resource & {
+  type?: string
   id?: string
+  title: string
+  slug: string
+  description: string
+  icon_url?: string
+  completed?: boolean
+  path: string
   externalId?: number
   image: string | {src: string; alt: string}
   name: string
   tag?: any
   subTitle?: string
-  byline: string
+  byline?: string
   resources?: CardResource[]
   related?: CardResource[]
   instructor?: any
@@ -36,14 +43,18 @@ export type LessonResource = Resource & {
   thumb_url: string
   lesson_view_url: string
   id: string | number
+  published_at: string
   tags: any[]
   lessons: any[]
   primary_tag: any
   completed: boolean
   duration: number
   instructor: any
+  hls_url?: string
+  dash_url?: string
   collection: Resource & {lessons: any[]}
   staff_notes_url?: string
+  free_forever?: boolean
   download_url?: string
   scrimba: {
     url: string
@@ -87,6 +98,7 @@ export type Viewer = {
   email: string
   contact_id: string
   avatar_url: string
+  watch_later_bookmarks_url: string
   name: string
   is_pro: boolean
   is_instructor: boolean
@@ -97,6 +109,7 @@ export type Viewer = {
   opted_out: boolean
   purchases: any[]
   accounts: StripeAccount[]
+  memberships?: any
 }
 
 export type Question = {

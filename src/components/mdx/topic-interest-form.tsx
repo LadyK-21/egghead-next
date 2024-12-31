@@ -1,8 +1,8 @@
 import React, {FunctionComponent} from 'react'
 import * as yup from 'yup'
-import useCio from 'hooks/use-cio'
-import {useViewer} from 'context/viewer-context'
-import {requestSignInEmail} from 'utils/request-signin-email'
+import useCio from '@/hooks/use-cio'
+import {useViewer} from '@/context/viewer-context'
+import {requestSignInEmail} from '@/utils/request-signin-email'
 import {Formik} from 'formik'
 import {useRouter} from 'next/router'
 
@@ -115,7 +115,7 @@ const EmailForm: FunctionComponent<React.PropsWithChildren<LoginFormProps>> = ({
                           onChange={handleChange}
                           onBlur={handleBlur}
                           placeholder="you@company.com"
-                          className="text-black autofill:text-fill-black py-3 placeholder-gray-400 focus:ring-indigo-500 focus:border-blue-500 block w-full pl-10 border-gray-300 rounded-md"
+                          className="text-black py-3 placeholder-gray-400 focus:ring-indigo-500 focus:border-blue-500 block w-full pl-10 border-gray-300 rounded-md"
                           required
                         />
                       </div>

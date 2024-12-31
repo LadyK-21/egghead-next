@@ -4,9 +4,9 @@ import Image from 'next/legacy/image'
 import {get} from 'lodash'
 import Link from 'next/link'
 import groq from 'groq'
-import {bpMinMD} from 'utils/breakpoints'
-import {track} from 'utils/analytics'
-import ExternalTrackedLink from 'components/external-tracked-link'
+import {bpMinMD} from '@/utils/breakpoints'
+import {track} from '@/utils/analytics'
+import ExternalTrackedLink from '@/components/external-tracked-link'
 
 export default function SearchKamranAhmed({instructor}: {instructor: any}) {
   const combinedInstructor = {...instructor}
@@ -37,7 +37,7 @@ export const kamranAhmedQuery = groq`*[_type == 'resource' && slug.current == "k
     	path,
       byline,
     	image,
-      'instructor': collaborators[]->[role == 'instructor'][0]{
+      'instructor': collaborators[@->.role == 'instructor'][0]->{
       	'name': person->.name
     	},
     }

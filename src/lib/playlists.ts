@@ -1,10 +1,10 @@
 import {request} from 'graphql-request'
-import getAccessTokenFromCookie from 'utils/get-access-token-from-cookie'
+import getAccessTokenFromCookie from '@/utils/get-access-token-from-cookie'
 import {getGraphQLClient} from '../utils/configured-graphql-client'
 import config from './config'
 import {loadCourseMetadata} from './courses'
 import groq from 'groq'
-import {sanityClient} from 'utils/sanity-client'
+import {sanityClient} from '@/utils/sanity-client'
 
 export async function loadAllPlaylistsByPage(retryCount = 0): Promise<any> {
   const query = /* GraphQL */ `
@@ -102,7 +102,10 @@ export async function loadAllPlaylists() {
   return all_playlists
 }
 
-export async function loadAuthedPlaylistForUser(slug: string) {
+export async function loadAuthedPlaylistForUser(
+  slug: string,
+  accessToken?: string,
+) {
   if (slug === 'undefined') return
 
   const query = /* GraphQL */ `
@@ -110,20 +113,18 @@ export async function loadAuthedPlaylistForUser(slug: string) {
       playlist(slug: $slug) {
         favorited
         toggle_favorite_url
-        download_url
         rss_url
       }
     }
   `
   const token = getAccessTokenFromCookie()
-  const graphQLClient = getGraphQLClient(token)
+  const graphQLClient = getGraphQLClient(accessToken ?? token)
 
   const variables = {
     slug: slug,
   }
 
   const {playlist} = await graphQLClient.request(query, variables)
-
   return playlist
 }
 
@@ -154,6 +155,8 @@ export async function loadPlaylist(slug: string, token?: string) {
         published_at
         access_state
         visibility_state
+        toggle_favorite_url
+        favorited
         state
         tags {
           name
@@ -293,10 +296,12 @@ export async function loadPlaylist(slug: string, token?: string) {
     slug: slug,
   }
 
+  console.log('query', token)
+
   const graphQLClient = getGraphQLClient(token)
 
   const {playlist} = await graphQLClient.request(query, variables)
   const courseMeta = await loadCourseMetadata(playlist.id, playlist.slug)
 
-  return {...playlist, ...courseMeta}
+  return {...playlist, ...courseMeta, slug}
 }

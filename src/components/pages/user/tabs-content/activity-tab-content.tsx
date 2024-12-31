@@ -1,69 +1,52 @@
-import * as React from 'react'
-import {useQuery} from '@tanstack/react-query'
+'use client'
+import {use} from 'react'
 
-import {useViewer} from 'context/viewer-context'
-import {loadUserProgress, loadUserCompletedCourses} from 'lib/users'
 import {
   CompletedCourses,
   ContinueLearning,
   LearnerStats,
-} from 'components/pages/user/components'
-import {ItemWrapper} from 'components/pages/user/components/widget-wrapper'
-import {trpc} from 'trpc/trpc.client'
+} from '@/components/pages/user/components'
+import {ItemWrapper} from '@/components/pages/user/components/widget-wrapper'
 
-const useProgressForUser = (viewerId: number) => {
-  return useQuery(['progress'], async () => {
-    if (viewerId) {
-      const {
-        progress: {data},
-        completionStats,
-      } = await loadUserProgress(viewerId)
+const ActivityTabContent: React.FC<
+  React.PropsWithChildren<{
+    completedCoursesLoader: Promise<any>
+    userProgressLoader: Promise<any>
+  }>
+> = ({completedCoursesLoader, userProgressLoader}) => {
+  const {completeCourses} = use(completedCoursesLoader)
+  const userProgress = use(userProgressLoader)
 
-      return {
-        progress: data.filter((p: any) => !p.is_complete),
-        completionStats,
-      }
-    }
-  })
-}
+  const completedCourseCount = completeCourses?.length ?? 0
 
-const ActivityTabContent: React.FC<React.PropsWithChildren<any>> = () => {
-  const {viewer, authToken} = useViewer()
-  const viewerId = viewer?.id
-  const {status: progressStatus, data: progressData} =
-    useProgressForUser(viewerId)
-  const {
-    data: completeCourseData,
-    status: completeCourseStatus,
-    error: completeCourseError,
-  } = trpc.progress.completedCourses.useQuery()
-  const completeCourseCount = !!completeCourseData?.length
-    ? completeCourseData?.length
-    : 0
   const learnerStatsData = {
-    ...progressData?.completionStats,
-    completeCourseCount,
+    ...userProgress?.completionStats,
+    completedCourseCount,
   }
+
+  const coursesInProgress = userProgress?.progress.data.filter(
+    (course: any) => course.is_complete === false,
+  )
 
   return (
     <div className="space-y-10 md:space-y-14 xl:space-y-16">
       <ItemWrapper title="Learner Stats">
         <LearnerStats
           learnerStatsData={learnerStatsData}
-          learnerStatsStatus={progressStatus}
+          learnerStatsStatus="success"
         />
       </ItemWrapper>
       <ItemWrapper title="Continue Learning">
         <ContinueLearning
-          continueLearningData={progressData?.progress}
-          continueLearningStatus={progressStatus}
+          continueLearningData={coursesInProgress}
+          continueLearningStatus="success"
         />
       </ItemWrapper>
       <ItemWrapper title="Completed Courses">
         <CompletedCourses
-          completeCourseData={completeCourseData}
-          completedCourseStatus={completeCourseStatus}
-          completedCourseCount={completeCourseCount}
+          completeCourseData={completeCourses}
+          completedCourseStatus="success"
+          completedCourseCount={completedCourseCount}
         />
       </ItemWrapper>
     </div>

@@ -1,16 +1,17 @@
 import {CheckCircleIcon, XCircleIcon} from '@heroicons/react/solid'
 import {useMachine} from '@xstate/react'
-import {RequestDraftCourseFormProps} from 'components/layouts/draft-course-page-layout'
-import Spinner from 'components/spinner'
+import {RequestDraftCourseFormProps} from '@/components/layouts/draft-course-page-layout'
+import Spinner from '@/components/spinner'
 import {Formik} from 'formik'
 import {
   DoneEventObject,
   requestDraftCourseChangeMachine,
-} from 'machines/draft-course-machine'
+} from '@/machines/draft-course-machine'
 import toast from 'react-hot-toast'
 import cx from 'classnames'
-import {trpc} from 'trpc/trpc.client'
-import Markdown from 'components/markdown'
+import {trpc} from '@/app/_trpc/client'
+import Markdown from '@/components/markdown'
+import rehypeRaw from 'rehype-raw'
 
 export const DescriptionChangeForm: React.FunctionComponent<
   React.PropsWithChildren<RequestDraftCourseFormProps>
@@ -122,7 +123,7 @@ export const DescriptionChangeForm: React.FunctionComponent<
                     >
                       {currentDescription && (
                         <Markdown
-                          allowDangerousHtml
+                          rehypePlugins={[rehypeRaw]}
                           className="mb-6 mt-2 px-4 text-gray-900 dark:prose-dark md:prose-lg md:dark:prose-lg-dark dark:text-gray-100  prose dark:prose-a:text-blue-300 dark:hover:prose-a:text-blue-200 prose-a:text-blue-500 hover:prose-a-:text-blue-600"
                         >
                           {currentDescription}

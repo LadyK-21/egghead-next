@@ -1,12 +1,11 @@
 import React from 'react'
 import Link from 'next/link'
-import {track} from 'utils/analytics'
-import {useViewer} from 'context/viewer-context'
+import {track} from '@/utils/analytics'
+import {useViewer} from '@/context/viewer-context'
 import {format} from 'date-fns'
-import {recur} from 'utils/recur'
-import PricingWidget from 'components/pricing/pricing-widget'
-import {useAccount} from 'hooks/use-account'
-import {trpc} from '../../../../trpc/trpc.client'
+import {recur} from '@/utils/recur'
+import {useAccount} from '@/hooks/use-account'
+import {trpc} from '@/app/_trpc/client'
 
 type SubscriptionDetailsProps = {
   stripeCustomerId: string
@@ -107,21 +106,9 @@ const SubscriptionDetails: React.FunctionComponent<
               </p>
             </div>
           </div>
-          {subscriptionData.portalUrl && (
-            <div className="bg-primary-2 text-accents-3 rounded-b-md">
-              <div className="flex flex-col justify-between items-center">
-                <Link
-                  href={subscriptionData.portalUrl}
-                  onClick={() => {
-                    track(`clicked manage membership`)
-                  }}
-                  className="w-2/3 px-5 py-3 mt-4 font-semibold text-center text-white transition-all duration-150 ease-in-out bg-blue-600 rounded-md hover:bg-blue-700 active:bg-blue-800 hover:scale-105 hover:shadow-xl"
-                >
-                  Update Your Subscription or Payment Method
-                </Link>
-              </div>
-            </div>
-          )}
+          <SubscriptionPortalLink
+            subscriptionPortalUrl={subscriptionData.portalUrl}
+          />
         </div>
       )
     case isTeamAccountOwner:
@@ -159,21 +146,9 @@ const SubscriptionDetails: React.FunctionComponent<
               </p>
             </div>
           </div>
-          {subscriptionData.portalUrl && (
-            <div className="bg-primary-2 text-accents-3 rounded-b-md mt-6">
-              <div className="flex flex-col justify-between items-center">
-                <Link
-                  href={subscriptionData.portalUrl}
-                  onClick={() => {
-                    track(`clicked manage membership`)
-                  }}
-                  className="w-2/3 px-5 py-3 mt-4 font-semibold text-center text-white transition-all duration-150 ease-in-out bg-blue-600 rounded-md hover:bg-blue-700 active:bg-blue-800 hover:scale-105 hover:shadow-xl"
-                >
-                  Update Your Subscription or Payment Method
-                </Link>
-              </div>
-            </div>
-          )}
+          <SubscriptionPortalLink
+            subscriptionPortalUrl={subscriptionData.portalUrl}
+          />
           <p className="mt-4 w-fit mx-auto">
             <Link href="/team" className="underline text-blue-600">
               add/remove team members here
@@ -217,27 +192,16 @@ const SubscriptionDetails: React.FunctionComponent<
               </p>
             </div>
           </div>
-          {subscriptionData.portalUrl && (
-            <div className="bg-primary-2 text-accents-3 rounded-b-md mt-6">
-              <div className="flex flex-col justify-between items-center">
-                <Link
-                  href={subscriptionData.portalUrl}
-                  onClick={() => {
-                    track(`clicked manage membership`)
-                  }}
-                  className="w-2/3 px-5 py-3 mt-4 font-semibold text-center text-white transition-all duration-150 ease-in-out bg-blue-600 rounded-md hover:bg-blue-700 active:bg-blue-800 hover:scale-105 hover:shadow-xl"
-                >
-                  Renew your Membership
-                </Link>
-              </div>
-            </div>
-          )}
+          <SubscriptionPortalLink
+            subscriptionPortalUrl={subscriptionData.portalUrl}
+            text="Renew your Membership"
+          />
         </div>
       )
   }
 
   return (
-    <div className="w-full">
+    <div>
       {subscriptionName ? (
         <div className="md:w-[75ch] mx-auto">
           <div className="w-full leading-relaxed mt-4 text-center space-y-4">
@@ -264,7 +228,7 @@ const SubscriptionDetails: React.FunctionComponent<
           </div>
         </div>
       ) : (
-        <div className="w-full">
+        <div>
           {(viewer.is_pro || viewer.is_instructor) && (
             <p>
               You still have access to a Pro Membership. If you feel this is in
@@ -281,21 +245,35 @@ const SubscriptionDetails: React.FunctionComponent<
           )}
         </div>
       )}
-      {subscriptionData.portalUrl && (
-        <div className="bg-primary-2 text-accents-3 rounded-b-md mt-6">
-          <div className="flex flex-col justify-between items-center">
-            <Link
-              href={subscriptionData.portalUrl}
-              onClick={() => {
-                track(`clicked manage membership`)
-              }}
-              className="w-2/3 px-5 py-3 font-semibold text-center text-white transition-all duration-150 ease-in-out bg-blue-600 rounded-md hover:bg-blue-700 active:bg-blue-800 hover:scale-105 hover:shadow-xl"
-            >
-              Update Your Subscription or Payment Method
-            </Link>
-          </div>
-        </div>
-      )}
+      <SubscriptionPortalLink
+        subscriptionPortalUrl={subscriptionData.portalUrl}
+      />
+    </div>
+  )
+}
+
+const SubscriptionPortalLink = ({
+  subscriptionPortalUrl,
+  text = 'Update Your Subscription or Payment Method',
+}: {
+  subscriptionPortalUrl: string | undefined
+  text?: string
+}) => {
+  if (!subscriptionPortalUrl) return null
+
+  return (
+    <div className="bg-primary-2 text-accents-3 rounded-b-md mt-6">
+      <div className="flex flex-col justify-between items-center">
+        <Link
+          href={subscriptionPortalUrl}
+          onClick={() => {
+            track(`clicked manage membership`)
+          }}
+          className="w-2/3 px-5 py-3 font-semibold text-center text-white transition-all duration-150 ease-in-out bg-blue-600 rounded-md hover:bg-blue-700 active:bg-blue-800 hover:scale-105 hover:shadow-xl"
+        >
+          {text}
+        </Link>
+      </div>
     </div>
   )
 }

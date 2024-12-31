@@ -10,13 +10,13 @@ import {
 } from './index'
 import Image from 'next/legacy/image'
 import Link from 'next/link'
-import {track} from 'utils/analytics'
+import {track} from '@/utils/analytics'
 import {get, isEmpty} from 'lodash'
-import {CardResource} from 'types'
+import {CardResource} from '@/types'
 import {Textfit} from 'react-textfit'
 import ReactMarkdown from 'react-markdown'
 import useFitText from 'use-fit-text'
-import CheckIcon from 'components/icons/check'
+import CheckIcon from '@/components/icons/check'
 
 const SearchHitResourceCard: React.FC<
   React.PropsWithChildren<{
@@ -44,11 +44,8 @@ const SearchHitResourceCard: React.FC<
   const {fontSize, ref} = useFitText()
   if (isEmpty(resource)) return null
   const defaultClassName =
-    'rounded-md sm:aspect-w-4 sm:aspect-h-2 aspect-w-3 aspect-h-1 w-full h-full transition-all ease-in-out duration-200 relative overflow-hidden group dark:bg-gray-800 bg-white dark:bg-opacity-60 shadow-smooth dark:hover:bg-gray-700 dark:hover:bg-opacity-50'
+    'rounded-md w-full h-full transition-all ease-in-out duration-200 relative overflow-hidden group dark:bg-gray-800 bg-white dark:bg-opacity-60 shadow-smooth dark:hover:bg-gray-700 dark:hover:bg-opacity-50 aspect-[3/1] sm:aspect-[4/2] flex'
 
-  small =
-    (get(resource.image, 'src', resource.image) as string)?.includes('/tags') ??
-    true
   return (
     <ResourceLink
       path={resource.path.replace(/playlists/, 'courses')}
@@ -151,7 +148,7 @@ const PreviewImage: React.FC<
   const size = small ? 40 : 85
 
   return (
-    <CardPreview className="relative flex items-center justify-center sm:w-full w-16 ">
+    <CardPreview className="relative flex items-center justify-center w-16">
       <Image
         aria-hidden
         src={get(image, 'src', image)}

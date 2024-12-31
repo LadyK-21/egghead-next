@@ -1,6 +1,6 @@
 import {isPast} from 'date-fns'
 import {useViewer} from '../context/viewer-context'
-import {trpc} from '../trpc/trpc.client'
+import {trpc} from '@/app/_trpc/client'
 
 export const useAccount = () => {
   const {viewer} = useViewer()
@@ -8,6 +8,8 @@ export const useAccount = () => {
     trpc.user.accountsForCurrent.useQuery()
 
   const isInstructor = viewer?.is_instructor
+
+  const isLifetimeMember = viewer?.roles?.includes('lifetime_subscriber')
 
   const isActiveAccountMember = userAccounts?.some(
     (account: {members: {id: number}[]}) => {
@@ -63,7 +65,7 @@ export const useAccount = () => {
     giftExpiration,
     isTeamMember,
     hasStripeAccount,
-
+    isLifetimeMember,
     accountLoading: accountLoadingStatus === 'loading',
     accountOwner: userAccounts?.find((account: any) => account?.owner)?.owner,
   })
@@ -80,6 +82,7 @@ export const useAccount = () => {
     hasStripeAccount,
     isDisabled,
     isInstructor,
+    isLifetimeMember,
     instructorId: viewer?.instructor_id,
     accountLoading: accountLoadingStatus === 'loading',
     accountOwner: userAccounts?.find((account: any) => account?.owner)?.owner,
