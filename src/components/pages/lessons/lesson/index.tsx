@@ -1,38 +1,40 @@
 import React from 'react'
 import {useRouter} from 'next/router'
-import {filter, get, isEmpty, compact} from 'lodash'
-import queryString from 'query-string'
+import {filter, get, isEmpty, compact, truncate} from 'lodash'
 import {Tab, TabList, TabPanel, TabPanels, Tabs} from '@reach/tabs'
-import {useEggheadPlayer} from 'components/EggheadPlayer'
-import Course from 'components/pages/lessons/course'
-import Overlays from 'components/pages/lessons/overlays'
-import specialLessons from 'components/pages/lessons/special-lessons'
-import Transcript from 'components/pages/lessons/transcript'
-import {VideoResource} from 'types'
-import {NextSeo, VideoJsonLd} from 'next-seo'
+import {useEggheadPlayer} from '@/components/EggheadPlayer'
+import Course from '@/components/pages/lessons/course'
+import Overlays from '@/components/pages/lessons/overlays'
+import specialLessons from '@/components/pages/lessons/special-lessons'
+import Transcript from '@/components/pages/lessons/transcript'
+import {VideoResource} from '@/types'
+import {NextSeo, SocialProfileJsonLd, VideoJsonLd} from 'next-seo'
 import removeMarkdown from 'remove-markdown'
-import {useEnhancedTranscript} from 'hooks/use-enhanced-transcript'
-import useLastResource from 'hooks/use-last-resource'
+import {useEnhancedTranscript} from '@/hooks/use-enhanced-transcript'
+import useLastResource from '@/hooks/use-last-resource'
 import Markdown from 'react-markdown'
 import Link from 'next/link'
-import {track} from 'utils/analytics'
-import Eggo from 'components/icons/eggo'
+import {track} from '@/utils/analytics'
+import Eggo from '@/components/icons/eggo'
 import Image from 'next/legacy/image'
-import cookieUtil from 'utils/cookies'
-import useBreakpoint from 'utils/breakpoints'
-import Share from 'components/share'
-import {useNextForCollection} from 'hooks/use-next-up-data'
-import {useNextForCollectionSection} from 'hooks/next-data-sections'
+import cookieUtil from '@/utils/cookies'
+import useBreakpoint from '@/utils/breakpoints'
+import Share from '@/components/share'
+import {useNextForCollection} from '@/hooks/use-next-up-data'
+import {useNextForCollectionSection} from '@/hooks/next-data-sections'
 import CodeLink, {
   IconCode,
   IconGithub,
-} from 'components/pages/lessons/code-link'
-import DownloadControl from 'components/player/download-control'
-import useCio from 'hooks/use-cio'
+} from '@/components/pages/lessons/code-link'
+import DownloadControl from '@/components/player/download-control'
+import useCio from '@/hooks/use-cio'
 import friendlyTime from 'friendly-time'
-import {PublishedAt, UpdatedAt} from 'components/layouts/collection-page-layout'
-import cookies from 'utils/cookies'
-import AutoplayControl from 'components/player/autoplay-control'
+import {
+  PublishedAt,
+  UpdatedAt,
+} from '@/components/layouts/collection-page-layout'
+import cookies from '@/utils/cookies'
+import AutoplayControl from '@/components/player/autoplay-control'
 import {
   Player,
   usePlayerPrefs,
@@ -54,16 +56,16 @@ import {
   ArrowsExpandIcon,
 } from '@heroicons/react/outline'
 import {CheckCircleIcon, CheckIcon} from '@heroicons/react/solid'
-import {trpc} from 'trpc/trpc.client'
-import {LessonProgress} from 'lib/progress'
-import PlayerSidebar from 'components/player/player-sidebar'
-import Comments from 'components/pages/lessons/comments/comments'
+import {trpc} from '@/app/_trpc/client'
+import {LessonProgress} from '@/lib/progress'
+import PlayerSidebar from '@/components/player/player-sidebar'
+import Comments from '@/components/pages/lessons/comments/comments'
 import dynamic from 'next/dynamic'
 import ReactMarkdown from 'react-markdown'
-import CodeBlock from 'components/code-block'
-import {LessonResource, SectionResource} from 'types'
+import CodeBlock from '@/components/code-block'
+import {LessonResource, SectionResource} from '@/types'
 
-const Tags = dynamic(() => import('components/pages/lessons/tags'), {
+const Tags = dynamic(() => import('@/components/pages/lessons/tags'), {
   ssr: false,
 })
 
@@ -79,6 +81,15 @@ type LessonProps = {
 const MAX_FREE_VIEWS = 4
 
 const notesEnabled = process.env.NEXT_PUBLIC_NOTES_ENABLED === 'true'
+
+function toISO8601Duration(duration: number) {
+  const seconds = Math.floor(duration % 60)
+  const minutes = Math.floor((duration / 60) % 60)
+  const hours = Math.floor((duration / (60 * 60)) % 24)
+  const days = Math.floor(duration / (60 * 60 * 24))
+
+  return `P${days}DT${hours}H${minutes}M${seconds}S`
+}
 
 const Lesson: React.FC<React.PropsWithChildren<LessonProps>> = ({
   initialLesson,
@@ -486,9 +497,11 @@ const Lesson: React.FC<React.PropsWithChildren<LessonProps>> = ({
   return (
     <>
       <NextSeo
-        description={removeMarkdown(description)}
+        description={truncate(removeMarkdown(description?.replace(/"/g, "'")), {
+          length: 155,
+        })}
         canonical={`${process.env.NEXT_PUBLIC_DEPLOYMENT_URL}${lesson.path}`}
-        title={title}
+        title={title?.replace(/"/g, "'")}
         titleTemplate={'%s | egghead.io'}
         twitter={{
           handle: instructor?.twitter,
@@ -496,9 +509,12 @@ const Lesson: React.FC<React.PropsWithChildren<LessonProps>> = ({
           cardType: 'summary_large_image',
         }}
         openGraph={{
-          title,
+          title: title?.replace(/"/g, "'"),
           url: `${process.env.NEXT_PUBLIC_DEPLOYMENT_URL}${lesson.path}`,
-          description: removeMarkdown(description),
+          description: truncate(
+            removeMarkdown(description?.replace(/"/g, "'")),
+            {length: 155},
+          ),
           site_name: 'egghead',
           images: [
             {
@@ -508,10 +524,20 @@ const Lesson: React.FC<React.PropsWithChildren<LessonProps>> = ({
         }}
       />
       <VideoJsonLd
-        name={title}
-        description={removeMarkdown(description)}
+        name={title?.replace(/"/g, "'")}
+        description={truncate(removeMarkdown(description?.replace(/"/g, "'")), {
+          length: 155,
+        })}
+        contentUrl={lesson?.hls_url}
+        duration={toISO8601Duration(Number(lesson?.duration ?? 0))}
         uploadDate={lesson?.created_at}
         thumbnailUrls={compact([lesson?.thumb_url])}
+      />
+      <SocialProfileJsonLd
+        type="Person"
+        name={instructor?.full_name}
+        url={`https://egghead.io${instructorPagePath}`}
+        sameAs={[`https://twitter.com/${instructor.twitter}`]}
       />
       <div className={cx({'h-screen': isFullscreen})}>
         <div
@@ -535,8 +561,8 @@ const Lesson: React.FC<React.PropsWithChildren<LessonProps>> = ({
           >
             {hasScrimbaUrl ? (
               <>
-                <div className="relative w-full">
-                  <div className="aspect-w-16 aspect-h-10">
+                <div className="w-full">
+                  <div className="aspect-[16/10] relative">
                     <div className="absolute inset-0 flex flex-col">
                       <div className="h-full w-full">
                         <iframe
@@ -554,7 +580,11 @@ const Lesson: React.FC<React.PropsWithChildren<LessonProps>> = ({
               </>
             ) : (
               <>
-                <div className={cx({hidden: !playerVisible})}>
+                <div
+                  className={cx('aspect-[16/9] relative', {
+                    hidden: !playerVisible,
+                  })}
+                >
                   <Player
                     canAddNotes={
                       isEmpty(viewer) || !notesEnabled ? false : !isFullscreen
@@ -597,11 +627,11 @@ const Lesson: React.FC<React.PropsWithChildren<LessonProps>> = ({
                 />
               </>
             )}
-            {/* <div
-            className={cx('aspect-w-16 aspect-h-9', {
-              hidden: mounted,
-            })}
-          /> */}
+            <div
+              className={cx('aspect-[16/9]', {
+                hidden: mounted,
+              })}
+            />
           </div>
           {withSidePanel && (
             <div className="flex flex-col col-span-3 dark:bg-gray-800 bg-gray-50">
@@ -738,14 +768,16 @@ const Lesson: React.FC<React.PropsWithChildren<LessonProps>> = ({
                   </div>
                 </div>
               </div>
-              <div className="flex flex-col items-center mt-4 text-sm opacity-80 md:items-start">
-                {created_at && (
-                  <PublishedAt date={friendlyTime(new Date(created_at))} />
-                )}
-                {updated_at && (
-                  <UpdatedAt date={friendlyTime(new Date(updated_at))} />
-                )}
-              </div>
+              {mounted && (
+                <div className="flex flex-col items-center mt-4 text-sm opacity-80 md:items-start">
+                  {created_at && (
+                    <PublishedAt date={friendlyTime(new Date(created_at))} />
+                  )}
+                  {updated_at && (
+                    <UpdatedAt date={friendlyTime(new Date(updated_at))} />
+                  )}
+                </div>
+              )}
               {description && (
                 <Markdown className="font-medium prose prose-lg dark:prose-dark dark:prose-a:text-blue-300 prose-a:text-blue-500 max-w-none text-gray-1000 dark:text-white">
                   {description}
@@ -783,7 +815,7 @@ const Lesson: React.FC<React.PropsWithChildren<LessonProps>> = ({
               )}
             </div>
             <div>
-              {md && (
+              {mounted && md && (
                 <div className="py-4">
                   <Course course={collection} currentLessonSlug={lesson.slug} />
                 </div>
@@ -810,7 +842,7 @@ const Lesson: React.FC<React.PropsWithChildren<LessonProps>> = ({
                   <TabPanel>
                     <ReactMarkdown
                       skipHtml={false}
-                      renderers={{
+                      components={{
                         code: (props) => {
                           return <CodeBlock {...props} />
                         },
@@ -831,10 +863,7 @@ const Lesson: React.FC<React.PropsWithChildren<LessonProps>> = ({
                 )}
                 <TabPanel>
                   <div className="space-y-6 sm:space-y-8 break-[break-word]">
-                    <Comments
-                      lesson={lesson}
-                      commentingAllowed={viewer?.can_comment as any}
-                    />
+                    <Comments lesson={lesson} />
                   </div>
                 </TabPanel>
               </TabPanels>

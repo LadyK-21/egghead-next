@@ -3,38 +3,37 @@ import Link from 'next/link'
 import Image from 'next/legacy/image'
 import Markdown from 'react-markdown'
 import toast from 'react-hot-toast'
-import InstructorProfile from 'components/pages/courses/instructor-profile'
-import PlayIcon from 'components/pages/courses/play-icon'
-import getDependencies from 'data/courseDependencies'
+import InstructorProfile from '@/components/pages/courses/instructor-profile'
+import PlayIcon from '@/components/pages/courses/play-icon'
+import getDependencies from '@/data/courseDependencies'
 import {get, first, filter, isEmpty, take, truncate} from 'lodash'
-import {NextSeo} from 'next-seo'
+import {NextSeo, SocialProfileJsonLd, CourseJsonLd} from 'next-seo'
 import removeMarkdown from 'remove-markdown'
-import {track} from 'utils/analytics'
-import analytics from 'utils/analytics'
-import FolderDownloadIcon from '../icons/folder-download'
+import {track} from '@/utils/analytics'
+import analytics from '@/utils/analytics'
 import RSSIcon from '../icons/rss'
-import {convertTimeWithTitles} from 'utils/time-utils'
+import {convertTimeWithTitles} from '@/utils/time-utils'
 import ClockIcon from '../icons/clock'
 import CheckIcon from '../icons/check'
-import {LessonResource} from 'types'
+import {LessonResource} from '@/types'
 import BookmarkIcon from '../icons/bookmark'
-import axios from 'utils/configured-axios'
+import axios from '@/utils/configured-axios'
 import friendlyTime from 'friendly-time'
 import FiveStars from '../five-stars'
-import CommunityResource from 'components/community-resource'
+import CommunityResource from '@/components/community-resource'
 import TagList from './tag-list'
 import {useTheme} from 'next-themes'
 import ClosedCaptionIcon from '../icons/closed-captioning'
 import {HorizontalResourceCard} from '../card/horizontal-resource-card'
-import ExternalTrackedLink from 'components/external-tracked-link'
+import ExternalTrackedLink from '@/components/external-tracked-link'
 import DialogButton from '../pages/courses/dialog-button'
 import MembershipDialogButton from '../pages/courses/membership-dialog-button'
 import dynamic from 'next/dynamic'
 
-import LoginForm from 'pages/login'
-import {trpc} from 'trpc/trpc.client'
+import LoginForm from '@/pages/login'
+import {trpc} from '@/app/_trpc/client'
 const CoursePodcast = dynamic(
-  () => import('components/course/course-podcast'),
+  () => import('@/components/course/course-podcast'),
   {
     ssr: false,
   },
@@ -82,15 +81,6 @@ export const logCollectionResource = (collection: CollectionResource) => {
     const byline = `${
       instructor?.full_name && `${instructor.full_name}・`
     }${formattedDuration}・Course`
-
-    console.debug('collection resource', {
-      title,
-      byline,
-      ...(!!image && {image}),
-      path,
-      slug,
-      description,
-    })
   }
 }
 
@@ -144,59 +134,11 @@ const CollectionPageLayout: React.FunctionComponent<
     slug: course.slug,
   })
   const isCourseCompleted = courseProgress?.is_complete
-  const defaultPairWithResources: any[] = take(
-    [
-      {
-        title: 'Introduction to Cloudflare Workers',
-        byline: 'Kristian Freeman・36m・Course',
-        image:
-          'https://d2eip9sf3oo6c2.cloudfront.net/playlists/square_covers/000/418/892/thumb/EGH_IntroCloudFlareWorkers_Final.png',
-        path: '/playlists/introduction-to-cloudflare-workers-5aa3',
-        slug: 'introduction-to-cloudflare-workers-5aa3',
-        description:
-          "Become familiar with the Workers CLI `wrangler` that we will use to bootstrap our Worker project. From there you'll understand how a Worker receives and returns requests/Responses. We will also build this serverless function locally for development and deploy it to a custom domain.",
-      },
-      {
-        title: 'Create an eCommerce Store with Next.js and Stripe Checkout',
-        byline: 'Colby Fayock・1h 4m・Course',
-        image:
-          'https://d2eip9sf3oo6c2.cloudfront.net/playlists/square_covers/000/412/781/thumb/ecommerce-stripe-next.png',
-        path: '/playlists/create-an-ecommerce-store-with-next-js-and-stripe-checkout-562c',
-        slug: 'create-an-ecommerce-store-with-next-js-and-stripe-checkout-562c',
-        description: `This is a practical project based look at building a working e-commerce store
-        using modern tools and APIs. Excellent for a weekend side-project for your [developer project portfolio](https://joelhooks.com/developer-portfolio)`,
-      },
-      {
-        title: 'Practical Git for Everyday Professional Use',
-        byline: 'Trevor Miller・1h・Course',
-        image:
-          'https://d2eip9sf3oo6c2.cloudfront.net/series/square_covers/000/000/050/thumb/egghead-practical-git-course.png',
-        path: '/courses/practical-git-for-everyday-professional-use',
-        slug: 'practical-git-for-everyday-professional-use',
-        description: `[git](/q/git) is a critical component in the modern web developers tool box. This course
-         is a solid introduction and goes beyond the basics with some more advanced git commands
-         you are sure to find useful.`,
-      },
-      {
-        title: 'Build an App with the AWS Cloud Development Kit',
-        byline: 'Tomasz Łakomy・1h 4m・Course',
-        image:
-          'https://d2eip9sf3oo6c2.cloudfront.net/series/square_covers/000/000/450/thumb/EGH_AWS-TS.png',
-        path: '/courses/build-an-app-with-the-aws-cloud-development-kit',
-        slug: 'build-an-app-with-the-aws-cloud-development-kit',
-        description:
-          "Tomasz Łakomy will guide you through using TypeScript to complete the lifecycle of an application powered by AWS CDK. You'll see how to start a project, develop it locally, deploy it globally, then tear it all down when you're done. Excellent kick start for your next side project or your developer portfolio.",
-      },
-    ].filter((resource) => {
-      return resource.slug !== course.slug
-    }),
-    3,
-  )
 
   const {
     topics,
     illustrator,
-    pairWithResources = defaultPairWithResources,
+    pairWithResources,
     courseProject,
     quickFacts,
     prerequisites,
@@ -216,7 +158,6 @@ const CollectionPageLayout: React.FunctionComponent<
     watched_count,
     description,
     rss_url,
-    download_url,
     toggle_favorite_url,
     duration,
     collection_progress,
@@ -327,7 +268,7 @@ const CollectionPageLayout: React.FunctionComponent<
         className="inline-flex items-center justify-center px-6 py-4 font-semibold text-white transition-all duration-200 ease-in-out bg-blue-600 rounded-md hover:bg-blue-700"
       >
         <PlayIcon className="mr-2 text-blue-100" />
-        {isContinuing ? 'Continue' : 'Start'}Watching
+        {isContinuing ? 'Continue' : 'Start'} Watching
       </Link>
     ) : null
   }
@@ -405,7 +346,9 @@ const CollectionPageLayout: React.FunctionComponent<
   return (
     <>
       <NextSeo
-        description={truncate(removeMarkdown(description), {length: 155})}
+        description={truncate(removeMarkdown(description?.replace(/"/g, "'")), {
+          length: 155,
+        })}
         canonical={`${process.env.NEXT_PUBLIC_DEPLOYMENT_URL}${path}`}
         title={title}
         titleTemplate={'%s | egghead.io'}
@@ -417,7 +360,10 @@ const CollectionPageLayout: React.FunctionComponent<
         openGraph={{
           title,
           url: `${process.env.NEXT_PUBLIC_DEPLOYMENT_URL}${path}`,
-          description: truncate(removeMarkdown(description), {length: 155}),
+          description: truncate(
+            removeMarkdown(description?.replace(/"/g, "'")),
+            {length: 155},
+          ),
           site_name: 'egghead',
           images: [
             {
@@ -425,6 +371,12 @@ const CollectionPageLayout: React.FunctionComponent<
             },
           ],
         }}
+      />
+      <SocialProfileJsonLd
+        type="Person"
+        name={name}
+        url={`https://egghead.io/q/resources-by-${slug}`}
+        sameAs={[twitter, instructor.website]}
       />
       <div className="container pb-8 sm:pb-16 dark:text-gray-100">
         {state === 'retired' && (
@@ -506,12 +458,12 @@ const CollectionPageLayout: React.FunctionComponent<
                         {lessons.length + playlistLessons.length} lessons
                       </span>
                       {courseProgress?.completed_lesson_count &&
-                        courseProgress?.completed_lesson_count <
-                          courseProgress.lesson_count && (
-                          <span className="text-gray-700 dark:text-gray-400">
-                            ({courseProgress?.completed_lesson_count} watched)
-                          </span>
-                        )}
+                      courseProgress?.completed_lesson_count <
+                        courseProgress?.lesson_count ? (
+                        <span className="text-gray-700 dark:text-gray-400">
+                          ({courseProgress?.completed_lesson_count} watched)
+                        </span>
+                      ) : null}
                     </div>
                   </div>
                 </div>
@@ -541,6 +493,7 @@ const CollectionPageLayout: React.FunctionComponent<
               </div>
               {/* End of metadata block */}
 
+              {/* TODO: fix bookmarks feature EGG-294 */}
               {/* Start of action buttons block */}
               <div className="flex items-center justify-center mt-4 space-x-2 dark:text-gray-900 md:justify-start">
                 {/* Bookmark button */}
@@ -589,7 +542,7 @@ const CollectionPageLayout: React.FunctionComponent<
                   <DialogButton
                     buttonText="Bookmark"
                     title="Sign in or create a free account to bookmark"
-                    buttonStyles="text-gray-600 dark:text-gray-300 flex flex-row items-center rounded hover:bg-gray-100 
+                    buttonStyles="text-gray-600 dark:text-gray-300 flex flex-row items-center rounded hover:bg-gray-100
                     dark:hover:bg-gray-700 border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-600 px-4 py-2 border transition-colors text-sm xs:text-base ease-in-out opacity-90 shadow-sm"
                   >
                     <LoginForm
@@ -600,7 +553,7 @@ const CollectionPageLayout: React.FunctionComponent<
                       button="Sign In or Create an Account"
                       track={trackEmailCapture}
                     >
-                      <p className="px-3 text-center text-gray-700 max-w-10 dark:text-gray-400">
+                      <p className="px-3 text-center text-gray-700 dark:text-gray-400">
                         You need to be signed in to bookmark courses. Sign in or
                         create a free account to save this course.
                       </p>
@@ -608,34 +561,8 @@ const CollectionPageLayout: React.FunctionComponent<
                   </DialogButton>
                 )}
 
-                {/* Download button */}
-                {download_url ? (
-                  <Link
-                    href={download_url}
-                    onClick={() => {
-                      analytics.events.activityCtaClick(
-                        'course download',
-                        slug,
-                        name,
-                      )
-                    }}
-                  >
-                    <div className="flex flex-row items-center px-4 py-2 text-sm text-gray-600 transition-colors ease-in-out bg-white border border-gray-300 rounded shadow-sm dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 dark:bg-gray-800 dark:border-gray-600 xs:text-base">
-                      <FolderDownloadIcon className="w-4 h-4 mr-1" /> Download
-                    </div>
-                  </Link>
-                ) : state === 'retired' ? null : (
-                  <MembershipDialogButton
-                    buttonText="Download"
-                    title="Become a member to download this course"
-                  >
-                    As an egghead member you can download any of our courses and
-                    watch them offline.
-                  </MembershipDialogButton>
-                )}
-
                 {/* RSS button */}
-                {rss_url ? (
+                {/* {rss_url ? (
                   <Link
                     href={rss_url}
                     onClick={() => {
@@ -664,7 +591,7 @@ const CollectionPageLayout: React.FunctionComponent<
                       courses using an RSS feed.
                     </MembershipDialogButton>
                   </a>
-                )}
+                )} */}
               </div>
               {/* End of action buttons block */}
 
@@ -672,10 +599,7 @@ const CollectionPageLayout: React.FunctionComponent<
                 <PlayButton lesson={nextLesson} />
               </div>
               {description && (
-                <Markdown
-                  allowDangerousHtml
-                  className="mb-6 prose text-gray-900 dark:prose-dark md:prose-lg md:dark:prose-lg-dark dark:text-gray-100 dark:prose-a:text-blue-300 dark:hover:prose-a:text-blue-200 prose-a:text-blue-500 hover:prose-a-:text-blue-600 mt-14"
-                >
+                <Markdown className="mb-6 prose text-gray-900 dark:prose-dark md:prose-lg md:dark:prose-lg-dark dark:text-gray-100 dark:prose-a:text-blue-300 dark:hover:prose-a:text-blue-200 prose-a:text-blue-500 hover:prose-a-:text-blue-600 mt-14">
                   {description}
                 </Markdown>
               )}
@@ -893,7 +817,11 @@ const CollectionPageLayout: React.FunctionComponent<
               <div>
                 <ul>
                   {lessons.map((lesson: LessonResource, index: number) => {
-                    const tagImageUrl = `https://res.cloudinary.com/dg3gyk0gu/image/upload/w_72,h_72/v1683914713/tags/${lesson?.primary_tag?.name}.png`
+                    if (lesson?.published_at === null) return null
+
+                    const tagImageUrl =
+                      lesson?.tags?.[0]?.image_url ||
+                      `https://res.cloudinary.com/dg3gyk0gu/image/upload/w_72,h_72/v1683914713/tags/${lesson?.primary_tag?.name}.png`
 
                     const isComplete = completedLessonSlugs?.includes(
                       lesson.slug,
@@ -919,8 +847,10 @@ const CollectionPageLayout: React.FunctionComponent<
                               <div className="flex items-center flex-shrink-0 w-8">
                                 <Image
                                   src={tagImageUrl}
+                                  alt={lesson.primary_tag.name}
                                   width={24}
                                   height={24}
+                                  quality={100}
                                 />
                               </div>
                             )}
@@ -955,7 +885,7 @@ const CollectionPageLayout: React.FunctionComponent<
                 </ul>
               </div>
             </section>
-            {!isEmpty(pairWithResources) && (
+            {!isEmpty(relatedResources) && (
               <div className="flex flex-col my-12 space-y-2 md:hidden">
                 <h2 className="mb-3 text-lg font-semibold">
                   You might also like these resources:
@@ -968,17 +898,18 @@ const CollectionPageLayout: React.FunctionComponent<
                   width={916 / 2}
                   height={1024 / 2}
                 />
-                {pairWithResources.map((resource: any) => {
-                  return (
-                    <div key={resource.slug}>
-                      <HorizontalResourceCard
-                        className="my-4 border border-gray-400 border-opacity-10 dark:border-gray-500"
-                        resource={resource}
-                        location={course.path}
-                      />
-                    </div>
-                  )
-                })}
+                {relatedResources &&
+                  relatedResources.map((resource: any) => {
+                    return (
+                      <div key={resource.slug}>
+                        <HorizontalResourceCard
+                          className="my-4 border border-gray-400 border-opacity-10 dark:border-gray-500"
+                          resource={resource}
+                          location={course.path}
+                        />
+                      </div>
+                    )
+                  })}
               </div>
             )}
           </div>

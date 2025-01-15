@@ -1,26 +1,29 @@
 import * as React from 'react'
 import {AppProps, NextWebVitalsMetric} from 'next/app'
 import {MDXProvider} from '@mdx-js/react'
-import {ViewerProvider} from 'context/viewer-context'
+import {ViewerProvider} from '@/context/viewer-context'
 import {DefaultSeo, SocialProfileJsonLd} from 'next-seo'
-import AppLayout from 'components/app/layout'
-import mdxComponents from 'components/mdx'
-import defaultSeoConfig from 'next-seo.json'
+import AppLayout from '@/components/app/layout'
+import mdxComponents from '@/components/mdx'
+import defaultSeoConfig from '@/next-seo.json'
 import '@reach/listbox/styles.css'
 import '@reach/dialog/styles.css'
 import '@reach/tabs/styles.css'
 import '../styles/index.css'
 import 'focus-visible'
-import {FacebookPixel} from 'components/facebook-pixel'
-import {CioProvider} from 'hooks/use-cio'
-import {LogRocketProvider} from 'hooks/use-logrocket'
-import RouteLoadingIndicator from 'components/route-loading-indicator'
+import {FacebookPixel} from '@/components/facebook-pixel'
+import {CioProvider} from '@/hooks/use-cio'
+import {LogRocketProvider} from '@/hooks/use-logrocket'
+import RouteLoadingIndicator from '@/components/route-loading-indicator'
 import {useRouter} from 'next/router'
 import {ThemeProvider} from 'next-themes'
 import {Toaster} from 'react-hot-toast'
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query'
 import {ReactQueryDevtools} from '@tanstack/react-query-devtools'
-import {trpc} from 'trpc/trpc.client'
+import TrpcProvider from '@/app/_trpc/Provider'
+
+import {PostHogProvider} from 'posthog-js/react'
+import PosthogClient from '@/lib/posthog-client'
 
 declare global {
   interface Window {
@@ -37,6 +40,8 @@ const queryClient = new QueryClient()
 export function reportWebVitals(metric: NextWebVitalsMetric) {
   console.debug(`web vitals`, metric)
 }
+
+const posthog = PosthogClient.init()
 
 const App: React.FC<React.PropsWithChildren<AppProps>> = ({
   Component,
@@ -113,12 +118,16 @@ const App: React.FC<React.PropsWithChildren<AppProps>> = ({
           <LogRocketProvider>
             <CioProvider>
               <QueryClientProvider client={queryClient}>
-                <MDXProvider components={mdxComponents}>
-                  {getLayout(Component, pageProps)}
-                </MDXProvider>
-                <div className="print:hidden">
-                  <ReactQueryDevtools />
-                </div>
+                <TrpcProvider>
+                  <PostHogProvider client={posthog}>
+                    <MDXProvider components={mdxComponents}>
+                      {getLayout(Component, pageProps)}
+                    </MDXProvider>
+                    <div className="print:hidden">
+                      <ReactQueryDevtools />
+                    </div>
+                  </PostHogProvider>
+                </TrpcProvider>
               </QueryClientProvider>
             </CioProvider>
           </LogRocketProvider>
@@ -128,4 +137,4 @@ const App: React.FC<React.PropsWithChildren<AppProps>> = ({
   )
 }
 
-export default trpc.withTRPC(App)
+export default App

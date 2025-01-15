@@ -1,11 +1,11 @@
-import {sanityClient} from 'utils/sanity-client'
+import {sanityClient} from '@/utils/sanity-client'
 import groq from 'groq'
 import {loadPlaylist} from './playlists'
 import {z} from 'zod'
 
 const courseQuery = groq`
 *[
-  (_type == 'resource' || _type == 'course') && (externalId == $courseId || slug.current == $slug)
+  (_type == 'resource' || _type == 'course') && (railsCourseId == $courseId || externalId == $courseId || slug.current == $slug)
 ][0]{
   "id": _id,
   title,
@@ -23,10 +23,27 @@ const courseQuery = groq`
     "duration": resource->duration,
     "path": "/lessons/" + slug.current
   },
+  "lessons": resources[@->["_type"] == "lesson"]->{
+    title,
+    "type": "lesson",
+    "tags": softwareLibraries[] {
+      ...(library->{
+        'name': slug.current,
+        'label': name,
+        'http_url': url,
+        'image_url': image.url
+      })
+    },
+    "primary_tag": softwareLibraries[0].library->name,
+    "duration": resource->duration,
+    "path": "/lessons/" + slug.current
+  },
   "instructor": collaborators[0]->{
     "avatar_url": person->image.url,
     "full_name": person->name,
     "slug": person->slug.current,
+    "website": person->website,
+    "twitter": person->twitter,
     "id": _id
   },
   "tags": softwareLibraries[] {
@@ -50,7 +67,9 @@ const courseQuery = groq`
   'instructor': collaborators[@->.role == "instructor"][0]->{
     'full_name': person->name,
     'avatar_url': person->image.url,
-    'slug': person->slug.current
+    'slug': person->slug.current,
+    "website": person->website,
+    "twitter": person->twitter,
   },
   'dependencies': softwareLibraries[]{
     version,
@@ -124,7 +143,7 @@ export async function loadCourseMetadata(id: number, slug: string) {
 
   const course = await sanityClient.fetch(courseQuery, params)
 
-  if (!course?.square_cover_480_url) {
+  if (course && !course?.square_cover_480_url) {
     const imageUrl = course?.dependencies
       ? `https://res.cloudinary.com/dg3gyk0gu/image/upload/v1683914713/tags/${course?.dependencies[0]?.name}.png`
       : 'https://res.cloudinary.com/dg3gyk0gu/image/upload/v1569292667/eggo/eggo_flair.png'
@@ -158,6 +177,8 @@ export async function loadDraftSanityCourse(slug: string, token?: string) {
       "avatar_url": person->image.url,
       "full_name": person->name,
       "slug": person->slug.current,
+      "website": person->website,
+      "twitter": person->twitter,
       "id": _id
     },
     "tags": softwareLibraries[] {
@@ -190,6 +211,8 @@ export async function loadSanityInstructorbyCourseId(
       "avatar_url": person->image.url,
       "full_name": person->name,
       "slug": person->slug.current,
+      "website": person->website,
+      "twitter": person->twitter,
       "id": _id
     },
  }`
@@ -220,6 +243,8 @@ export async function loadDraftSanityCourseById(id: string, token?: string) {
       "avatar_url": person->image.url,
       "full_name": person->name,
       "slug": person->slug.current,
+      "website": person->website,
+      "twitter": person->twitter,
       "id": _id
     },
     "tags": softwareLibraries[] {
@@ -261,6 +286,8 @@ const SanityInstructorSchema = z.object({
   full_name: z.string(),
   slug: z.string(),
   id: z.string(),
+  website: z.string(),
+  twitter: z.string(),
 })
 
 const SanityDraftCourse = z.object({

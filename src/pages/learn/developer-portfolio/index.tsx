@@ -1,9 +1,9 @@
 import * as React from 'react'
 import groq from 'groq'
-import {sanityClient} from 'utils/sanity-client'
+import {sanityClient} from '@/utils/sanity-client'
 import Image from 'next/legacy/image'
 import Link from 'next/link'
-import {track} from 'utils/analytics'
+import {track} from '@/utils/analytics'
 import Markdown from 'react-markdown'
 
 const DeveloperPortfolio: React.FC<React.PropsWithChildren<any>> = ({data}) => {
@@ -43,10 +43,9 @@ const DeveloperPortfolio: React.FC<React.PropsWithChildren<any>> = ({data}) => {
                     {data.title}
                   </h1>
 
-                  <Markdown
-                    source={data.description}
-                    className="mt-4 prose dark:prose-dark dark:prose-md-dark prose-md"
-                  />
+                  <Markdown className="mt-4 prose dark:prose-dark dark:prose-md-dark prose-md">
+                    {data.description}
+                  </Markdown>
                 </div>
               </div>
             </div>

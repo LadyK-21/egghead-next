@@ -1,11 +1,11 @@
 import * as React from 'react'
 import Link from 'next/link'
 import Image from 'next/legacy/image'
-import {loadAllPlaylistsByPage} from 'lib/playlists'
+import {loadAllPlaylistsByPage} from '@/lib/playlists'
 import Markdown from 'react-markdown'
 import TagList from '../../components/layouts/tag-list'
 import useClipboard from 'react-use-clipboard'
-import {IconLink} from 'components/share'
+import {IconLink} from '@/components/share'
 import {NextSeo} from 'next-seo'
 import FiveStars from '../../components/five-stars'
 import {useRouter} from 'next/router'
@@ -129,10 +129,9 @@ const CourseIndex: React.FC<React.PropsWithChildren<{courses: any}>> = ({
                               {course.summary}
                             </h3>
                           )}
-                          <Markdown
-                            source={course.description}
-                            className="prose-sm prose transition-opacity duration-300 ease-in-out dark:prose-dark opacity-80 group-hover:opacity-100"
-                          />
+                          <Markdown className="prose-sm prose transition-opacity duration-300 ease-in-out dark:prose-dark opacity-80 group-hover:opacity-100">
+                            {course.description}
+                          </Markdown>
                         </div>
                       </div>
                       {isDevelopment && (

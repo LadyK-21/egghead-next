@@ -1,8 +1,8 @@
 import * as React from 'react'
 import Link from 'next/link'
 import Image from 'next/legacy/image'
-import getDependencies from 'data/courseDependencies'
-import {track} from 'utils/analytics'
+import getDependencies from '@/data/courseDependencies'
+import {track} from '@/utils/analytics'
 import {get, isEmpty} from 'lodash'
 
 type Version = string
@@ -25,10 +25,12 @@ const Tags: React.FC<
   React.PropsWithChildren<{
     tags: Tag[]
     lessonSlug: string
-    collectionSlug: string
+    collectionSlug?: string
   }>
 > = ({tags, lessonSlug, collectionSlug}) => {
-  const courseDependencies = getDependencies(collectionSlug)
+  const courseDependencies = collectionSlug
+    ? getDependencies(collectionSlug)
+    : null
   const dependencies = courseDependencies?.dependencies || {}
 
   const collectionTags: TagWithVersion[] = tags.map((tag: any) => {

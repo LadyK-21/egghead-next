@@ -1,3 +1,4 @@
+'use client'
 import React, {FunctionComponent} from 'react'
 import Auth from '../utils/auth'
 import queryString from 'query-string'
@@ -7,7 +8,7 @@ import isEmpty from 'lodash/isEmpty'
 import getAccessTokenFromCookie from '../utils/get-access-token-from-cookie'
 import useTokenSigner from '../hooks/use-token-signer'
 import useAffiliateAssigner from '../hooks/use-affiliate-assigner'
-import {getAbilityFromToken, canDoNothingAbility} from 'server/ability'
+import {getAbilityFromToken, canDoNothingAbility} from '@/server/ability'
 
 export const auth = new Auth()
 
@@ -223,7 +224,9 @@ export const ViewerProvider: FunctionComponent<
   const values = useAuthedViewer()
 
   return (
-    <ViewerContext.Provider value={{...values}}>
+    <ViewerContext.Provider
+      value={{...values, authenticated: values.isAuthenticated()}}
+    >
       {children}
     </ViewerContext.Provider>
   )

@@ -2,12 +2,13 @@ import * as React from 'react'
 import {useEggheadPlayerPrefs} from '../EggheadPlayer/use-egghead-player'
 import {Tab, TabList, TabPanel, TabPanels, Tabs} from '@reach/tabs'
 import {isEmpty} from 'lodash'
-import CollectionLessonsList from 'components/pages/lessons/collection-lessons-list'
-import {VideoResource} from 'types'
-import {track} from 'utils/analytics'
-import Link from 'components/link'
+import CollectionLessonsList from '@/components/pages/lessons/collection-lessons-list'
+import {VideoResource} from '@/types'
+import {track} from '@/utils/analytics'
+import Link from '@/components/link'
 import Image from 'next/legacy/image'
 import {GenericErrorBoundary} from '../generic-error-boundary'
+import {trpc} from '@/app/_trpc/client'
 
 const notesEnabled = process.env.NEXT_PUBLIC_NOTES_ENABLED === 'true'
 
@@ -100,28 +101,53 @@ const LessonListTab: React.FC<
     onActiveTab: boolean
   }>
 > = ({videoResource, lessonView, onActiveTab}) => {
-  const hidden: boolean = isEmpty(videoResource.collection)
+  const collectionIsEmpty: boolean = isEmpty(videoResource.collection)
 
-  return hidden ? null : (
+  // accounts for data coming from either GraphQL or Sanity. Sometimes there will be an array of tags instead of a single primary tag
+  const primaryTag = videoResource.primary_tag
+    ? videoResource.primary_tag
+    : videoResource.tags
+    ? videoResource.tags[0]
+    : null
+
+  const {data: lessonsFromTag} = collectionIsEmpty
+    ? trpc.lesson.getAssociatedLessonsByTag.useQuery({
+        tag: primaryTag?.name,
+        currentLessonSlug: videoResource.slug,
+      })
+    : {data: null}
+
+  return !collectionIsEmpty || lessonsFromTag ? (
     <div className="w-full h-full bg-gray-100 dark:bg-gray-1000">
       <div className="flex flex-col h-full">
-        <div className="flex-shrink-0 p-4 border-gray-100 sm:border-b dark:border-gray-800">
-          <CourseHeader
-            course={videoResource.collection}
-            currentLessonSlug={videoResource.slug}
-          />
-        </div>
+        {!collectionIsEmpty && (
+          <div className="flex-shrink-0 p-4 border-gray-100 sm:border-b dark:border-gray-800">
+            <CourseHeader
+              course={videoResource.collection}
+              currentLessonSlug={videoResource.slug}
+            />
+          </div>
+        )}
+        {collectionIsEmpty && primaryTag?.name && (
+          <div className="flex-shrink-0 p-4 border-gray-100 sm:border-b dark:border-gray-800">
+            <TagHeader
+              tag={primaryTag}
+              currentLessonSlug={videoResource.slug}
+            />
+          </div>
+        )}
         <div className="flex-grow overflow-hidden">
           <CollectionLessonsList
             course={videoResource.collection}
             currentLessonSlug={videoResource.slug}
             progress={lessonView?.collection_progress}
+            lessons={lessonsFromTag}
             onActiveTab={onActiveTab}
           />
         </div>
       </div>
     </div>
-  )
+  ) : null
 }
 
 const CourseHeader: React.FunctionComponent<
@@ -145,9 +171,9 @@ const CourseHeader: React.FunctionComponent<
         />
       </div>
       <div className="ml-2 lg:ml-4">
-        <h4 className="mb-px text-xs font-semibold text-gray-700 uppercase dark:text-gray-100">
+        <span className="mb-px text-xs font-semibold text-gray-700 uppercase dark:text-gray-100">
           Course
-        </h4>
+        </span>
         <Link href={course.path}>
           <a
             onClick={() => {
@@ -157,9 +183,52 @@ const CourseHeader: React.FunctionComponent<
             }}
             className="hover:underline"
           >
-            <h3 className="font-bold leading-tighter 2xl:text-lg">
+            <h2 className="font-bold leading-tighter 2xl:text-lg">
               {course.title}
-            </h3>
+            </h2>
+          </a>
+        </Link>
+      </div>
+    </div>
+  ) : null
+}
+
+const TagHeader: React.FunctionComponent<
+  React.PropsWithChildren<{
+    tag: {
+      name: string
+      label: string
+      http_url: string
+      image_url: string
+    }
+    currentLessonSlug: string
+  }>
+> = ({tag, currentLessonSlug}) => {
+  return tag ? (
+    <div className="flex items-center">
+      <div className="relative flex-shrink-0 block w-12 h-12 lg:w-16 lg:h-16 xl:w-20 xl:h-20">
+        <Image
+          src={tag.image_url}
+          alt={`illustration for ${tag.name}`}
+          layout="fill"
+        />
+      </div>
+      <div className="ml-2 lg:ml-4">
+        <span className="mb-px text-xs font-semibold text-gray-700 uppercase dark:text-gray-100">
+          Tag
+        </span>
+        <Link href={`/q/${tag.name}`}>
+          <a
+            onClick={() => {
+              track(`clicked open tag`, {
+                lesson: currentLessonSlug,
+              })
+            }}
+            className="hover:underline"
+          >
+            <h2 className="font-bold leading-tighter 2xl:text-lg">
+              Lessons Related to {tag.label}
+            </h2>
           </a>
         </Link>
       </div>

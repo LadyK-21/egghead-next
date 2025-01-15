@@ -1,6 +1,6 @@
-import Grid from 'components/grid'
-import {VerticalResourceCard} from 'components/card/new-vertical-resource-card'
-import {HorizontalResourceCard} from 'components/card/new-horizontal-resource-card'
+import Grid from '@/components/grid'
+import {VerticalResourceCard} from '@/components/card/new-vertical-resource-card'
+import {HorizontalResourceCard} from '@/components/card/new-horizontal-resource-card'
 import cx from 'classnames'
 import Image from 'next/legacy/image'
 import {
@@ -11,14 +11,14 @@ import {
   CardBody,
   CardAuthor,
   CardFooter,
-} from 'components/card'
-import {CardResource} from 'types'
+} from '@/components/card'
+import {CardResource} from '@/types'
 import {get, isEmpty, truncate} from 'lodash'
 import {CheckIcon} from '@heroicons/react/solid'
 import {Textfit} from 'react-textfit'
 import ReactMarkdown from 'react-markdown'
 import Link from 'next/link'
-import analytics from 'utils/analytics'
+import analytics from '@/utils/analytics'
 import {twMerge} from 'tailwind-merge'
 
 const ResourceLink: React.FC<
@@ -140,7 +140,7 @@ const SquareResourceCard: React.FC<
     resource.name === 'landing-page' ? 'guide' : resource.name
 
   const defaultClassName =
-    'rounded-md aspect-w-4 aspect-h-4 w-full h-full transition-all ease-in-out duration-200 relative overflow-hidden group dark:bg-gray-800 bg-white dark:bg-opacity-60 shadow-smooth dark:hover:bg-gray-700 dark:hover:bg-opacity-50 max-w-[344px]'
+    'rounded-md aspect-square flex w-full h-full transition-all ease-in-out duration-200 relative overflow-hidden group dark:bg-gray-800 bg-white dark:bg-opacity-60 shadow-smooth dark:hover:bg-gray-700 dark:hover:bg-opacity-50 max-w-[344px]'
   return (
     <ResourceLink
       path={(resource.path || resource.url) as string}
