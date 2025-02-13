@@ -1,7 +1,7 @@
 // Source: https://xstate-catalogue.com/machines/confirmation-dialog
 import {assign, createMachine} from 'xstate'
 import {Dispatch, SetStateAction} from 'react'
-import {getAuthorizationHeader} from 'utils/auth'
+import {getAuthorizationHeader} from '@/utils/auth'
 import axios from 'axios'
 import toast from 'react-hot-toast'
 
@@ -47,6 +47,7 @@ const confirmationDialogMachine = createMachine<
   ConfirmationDialogMachineEvent
 >(
   {
+    predictableActionArguments: true,
     id: 'confirmationDialog',
     initial: 'closed',
     context: {

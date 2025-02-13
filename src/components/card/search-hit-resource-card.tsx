@@ -10,13 +10,13 @@ import {
 } from './index'
 import Image from 'next/legacy/image'
 import Link from 'next/link'
-import {track} from 'utils/analytics'
+import {track} from '@/utils/analytics'
 import {get, isEmpty} from 'lodash'
-import {CardResource} from 'types'
+import {CardResource} from '@/types'
 import {Textfit} from 'react-textfit'
 import ReactMarkdown from 'react-markdown'
 import useFitText from 'use-fit-text'
-import CheckIcon from 'components/icons/check'
+import CheckIcon from '@/components/icons/check'
 
 const SearchHitResourceCard: React.FC<
   React.PropsWithChildren<{
@@ -44,11 +44,8 @@ const SearchHitResourceCard: React.FC<
   const {fontSize, ref} = useFitText()
   if (isEmpty(resource)) return null
   const defaultClassName =
-    'rounded-md sm:aspect-w-4 sm:aspect-h-2 aspect-w-3 aspect-h-1 w-full h-full transition-all ease-in-out duration-200 relative overflow-hidden group dark:bg-gray-800 bg-white dark:bg-opacity-60 shadow-smooth dark:hover:bg-gray-700 dark:hover:bg-opacity-50'
+    'rounded-md w-full h-full transition-all ease-in-out duration-200 relative overflow-hidden group dark:bg-gray-800 bg-white dark:bg-opacity-60 shadow-smooth dark:hover:bg-gray-700 dark:hover:bg-opacity-50 aspect-[3/1] sm:aspect-[4/2] flex'
 
-  small =
-    (get(resource.image, 'src', resource.image) as string)?.includes('/tags') ??
-    true
   return (
     <ResourceLink
       path={resource.path.replace(/playlists/, 'courses')}
@@ -56,7 +53,7 @@ const SearchHitResourceCard: React.FC<
       className={className}
     >
       <Card {...props} resource={resource} className={defaultClassName}>
-        <CardContent className="flex items-center sm:space-x-5 space-x-3 sm:px-5 px-3 py-2 w-full">
+        <CardContent className="flex justify-center items-center sm:space-x-5 space-x-3 sm:px-5 px-3 py-2 w-full">
           {resource.image && (
             <CardHeader
               className={`flex items-center justify-center flex-shrink-0`}
@@ -92,7 +89,7 @@ const SearchHitResourceCard: React.FC<
                 throttle={1000}
               > */}
             <h3
-              className="lg:h-[60px] md:h-[55px] sm:h-[50px] h-[36px] font-medium leading-tight flex items-center"
+              className="lg:h-[60px] md:h-[55px] sm:h-[50px] h-[36px] font-medium leading-tight flex items-center max-w-[285px]"
               style={{fontSize}}
               ref={ref}
             >
@@ -151,7 +148,7 @@ const PreviewImage: React.FC<
   const size = small ? 40 : 85
 
   return (
-    <CardPreview className="relative flex items-center justify-center sm:w-full w-16 ">
+    <CardPreview className="relative flex items-center justify-center w-16">
       <Image
         aria-hidden
         src={get(image, 'src', image)}

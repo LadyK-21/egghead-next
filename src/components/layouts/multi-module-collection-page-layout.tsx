@@ -3,38 +3,38 @@ import Link from 'next/link'
 import Image from 'next/legacy/image'
 import Markdown from 'react-markdown'
 import toast from 'react-hot-toast'
-import InstructorProfile from 'components/pages/courses/instructor-profile'
-import PlayIcon from 'components/pages/courses/play-icon'
-import getDependencies from 'data/courseDependencies'
+import InstructorProfile from '@/components/pages/courses/instructor-profile'
+import PlayIcon from '@/components/pages/courses/play-icon'
+import getDependencies from '@/data/courseDependencies'
 import {get, first, filter, isEmpty, take, truncate} from 'lodash'
 import {NextSeo} from 'next-seo'
 import removeMarkdown from 'remove-markdown'
-import {useViewer} from 'context/viewer-context'
-import {track} from 'utils/analytics'
-import analytics from 'utils/analytics'
-import FolderDownloadIcon from '../icons/folder-download'
+import {useViewer} from '@/context/viewer-context'
+import {track} from '@/utils/analytics'
+import analytics from '@/utils/analytics'
 import RSSIcon from '../icons/rss'
-import {convertTimeWithTitles} from 'utils/time-utils'
+import {convertTimeWithTitles} from '@/utils/time-utils'
 import ClockIcon from '../icons/clock'
 import CheckIcon from '../icons/check'
-import {LessonResource} from 'types'
+import {LessonResource} from '@/types'
 import BookmarkIcon from '../icons/bookmark'
-import axios from 'utils/configured-axios'
+import axios from '@/utils/configured-axios'
 import friendlyTime from 'friendly-time'
 import LearnerRatings from '../pages/courses/learner-ratings'
 import FiveStars from '../five-stars'
-import CommunityResource from 'components/community-resource'
+import CommunityResource from '@/components/community-resource'
 import TagList from './tag-list'
 import {useTheme} from 'next-themes'
 import ClosedCaptionIcon from '../icons/closed-captioning'
 import {HorizontalResourceCard} from '../card/horizontal-resource-card'
-import ExternalTrackedLink from 'components/external-tracked-link'
+import ExternalTrackedLink from '@/components/external-tracked-link'
 import DialogButton from '../pages/courses/dialog-button'
 import MembershipDialogButton from '../pages/courses/membership-dialog-button'
-import {loadUserCompletedCourses} from 'lib/users'
+import {loadUserCompletedCourses} from '@/lib/users'
 
-import LoginForm from 'pages/login'
-import {trpc} from 'trpc/trpc.client'
+import LoginForm from '@/pages/login'
+import {trpc} from '@/app/_trpc/client'
+import rehypeRaw from 'rehype-raw'
 
 type CoursePageLayoutProps = {
   lessons: any
@@ -72,15 +72,6 @@ export const logCollectionResource = (collection: CollectionResource) => {
     const byline = `${
       instructor?.full_name && `${instructor.full_name}・`
     }${formattedDuration}・Course`
-
-    console.debug('collection resource', {
-      title,
-      byline,
-      ...(!!image && {image}),
-      path,
-      slug,
-      description,
-    })
   }
 }
 
@@ -213,7 +204,6 @@ const MultiModuleCollectionPageLayout: React.FunctionComponent<
     watched_count,
     description,
     rss_url,
-    download_url,
     toggle_favorite_url,
     duration,
     collection_progress,
@@ -404,7 +394,9 @@ const MultiModuleCollectionPageLayout: React.FunctionComponent<
   return (
     <>
       <NextSeo
-        description={truncate(removeMarkdown(description), {length: 155})}
+        description={truncate(removeMarkdown(description.replace(/"/g, "'")), {
+          length: 155,
+        })}
         canonical={`${process.env.NEXT_PUBLIC_DEPLOYMENT_URL}${path}`}
         title={title}
         titleTemplate={'%s | egghead.io'}
@@ -416,7 +408,10 @@ const MultiModuleCollectionPageLayout: React.FunctionComponent<
         openGraph={{
           title,
           url: `${process.env.NEXT_PUBLIC_DEPLOYMENT_URL}${path}`,
-          description: truncate(removeMarkdown(description), {length: 155}),
+          description: truncate(
+            removeMarkdown(description.replace(/"/g, "'")),
+            {length: 155},
+          ),
           site_name: 'egghead',
           images: [
             {
@@ -635,7 +630,7 @@ const MultiModuleCollectionPageLayout: React.FunctionComponent<
                 <PlayButton lesson={nextLesson} />
               </div>
               <Markdown
-                allowDangerousHtml
+                rehypePlugins={[rehypeRaw]}
                 className="mb-6 prose text-gray-900 dark:prose-dark md:prose-lg md:dark:prose-lg-dark dark:text-gray-100 dark:prose-a:text-blue-300 dark:hover:prose-a:text-blue-200 prose-a:text-blue-500 hover:prose-a-:text-blue-600 mt-14"
               >
                 {description}

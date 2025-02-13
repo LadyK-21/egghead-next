@@ -1,20 +1,21 @@
 import * as React from 'react'
 import {FunctionComponent} from 'react'
-import axios from 'utils/configured-axios'
+import axios from '@/utils/configured-axios'
 import * as Yup from 'yup'
 import isEmpty from 'lodash/isEmpty'
 import {motion} from 'framer-motion'
 import {useInterval} from 'react-use'
 import {Formik, Form, Field, ErrorMessage} from 'formik'
 import {DialogOverlay, DialogContent} from '@reach/dialog'
-import {track} from 'utils/analytics'
+import analytics, {track} from '@/utils/analytics'
 import {Listbox, Transition} from '@headlessui/react'
 import {CheckIcon, SelectorIcon} from '@heroicons/react/solid'
 
 import Sob from './images/Sob'
 import Hearteyes from './images/Hearteyes'
 import NeutralFace from './images/NeutralFace'
-import useCio from 'hooks/use-cio'
+import useCio from '@/hooks/use-cio'
+import {getAuthorizationHeader} from '@/utils/auth'
 
 type FeedbackCategory = {
   id: number
@@ -218,8 +219,13 @@ const Feedback: FunctionComponent<React.PropsWithChildren<FeedbackProps>> = ({
 
     setState({loading: true, success: false, errorMessage: null})
     actions.setSubmitting(true)
-    axios
-      .post('/api/v1/feedback', {
+    fetch('/api/feedback', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthorizationHeader(),
+      },
+      body: JSON.stringify({
         feedback: {
           url: window.location.toString(),
           site: `egghead-next`,
@@ -228,14 +234,16 @@ const Feedback: FunctionComponent<React.PropsWithChildren<FeedbackProps>> = ({
           user: user,
           emotion: slackEmojiCode,
         },
-      })
+      }),
+    })
       .then(() => {
-        track(`sent feedback`, {
-          category: selectedCategory.category,
-          comment: values.feedback,
-          emotion: slackEmojiCode,
-          url: window.location.toString(),
-        })
+        analytics.events.engagementSentFeedback(
+          selectedCategory.category,
+          values.feedback,
+          slackEmojiCode,
+          window.location.toString(),
+        )
+
         if (subscriber) {
           const learner_score =
             Number(subscriber.attributes?.learner_score) || 0

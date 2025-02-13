@@ -1,7 +1,7 @@
 import * as React from 'react'
 import {FunctionComponent} from 'react'
 import {Children, ReactNode, ReactElement} from 'react'
-import {paramsFromMetastring} from 'utils/code'
+import {paramsFromMetastring} from '@/utils/code'
 import useClipboard from 'react-use-clipboard'
 import SimpleBar from 'simplebar-react'
 
@@ -88,6 +88,7 @@ const CodeBlock: FunctionComponent<React.PropsWithChildren<CodeBlockProps>> = ({
               border-radius: 0 !important;
               margin: 0 !important;
               padding: 0 !important;
+              tab-size: 2 !important;
             }
             @media only screen and (max-width: 640px) {
               pre {
@@ -113,7 +114,7 @@ export default CodeBlock
 const Line: FunctionComponent<
   React.PropsWithChildren<{highlight?: boolean}>
 > = ({highlight, children}) => (
-  <div className={highlight ? 'bg-gray-700' : ''}>{children}</div>
+  <span className={highlight ? 'bg-gray-700' : ''}>{children}</span>
 )
 
 const Number: FunctionComponent<React.PropsWithChildren<unknown>> = ({

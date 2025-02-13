@@ -1,18 +1,18 @@
 import * as React from 'react'
-import Grid from 'components/grid'
-import {HorizontalResourceCard} from 'components/card/new-horizontal-resource-card'
-import {VerticalResourceCard} from 'components/card/new-vertical-resource-card'
+import Grid from '@/components/grid'
+import {HorizontalResourceCard} from '@/components/card/new-horizontal-resource-card'
+import {VerticalResourceCard} from '@/components/card/new-vertical-resource-card'
 import Image from 'next/legacy/image'
 import ReactMarkdown from 'react-markdown'
 import isEmpty from 'lodash/isEmpty'
 import cx from 'classnames'
 import {NextSeo} from 'next-seo'
-import {CARD_TYPES} from 'components/search/curated/curated-essential'
+import {CARD_TYPES} from '@/components/search/curated/curated-essential'
 import {useRouter} from 'next/router'
-import {useViewer} from 'context/viewer-context'
-import {loadUserCompletedCourses} from 'lib/users'
+import {useViewer} from '@/context/viewer-context'
+import {loadUserCompletedCourses} from '@/lib/users'
 import {twMerge} from 'tailwind-merge'
-import {trpc} from 'trpc/trpc.client'
+import {trpc} from '@/app/_trpc/client'
 
 type CuratedTopicProps = {
   topicData: any
@@ -124,7 +124,7 @@ const CuratedTopic: React.FC<React.PropsWithChildren<CuratedTopicProps>> = ({
   const location = `${topic.name} landing`
   const pageDescription = `Life is too short for long boring videos. Learn ${topic.label} using the best screencast tutorial videos online led by working professionals that learn in public.`
   const pageTitle = `In-Depth ${
-    topic.label
+    topicData.title
   } Tutorials for ${new Date().getFullYear()}`
   const router = useRouter()
   const {data: completeCourseData} = trpc.progress.completedCourses.useQuery()

@@ -1,20 +1,20 @@
 import * as React from 'react'
-import InstructorProfile from 'components/pages/courses/instructor-profile'
+import InstructorProfile from '@/components/pages/courses/instructor-profile'
 import {PlusIcon} from '@heroicons/react/outline'
 import {get, truncate} from 'lodash'
 import {NextSeo} from 'next-seo'
 import removeMarkdown from 'remove-markdown'
 import ClockIcon from '../icons/clock'
-import CommunityResource from 'components/community-resource'
+import CommunityResource from '@/components/community-resource'
 import TagList from './tag-list'
 import ClosedCaptionIcon from '../icons/closed-captioning'
 import {logCollectionResource} from './collection-page-layout'
-import {TitleChangeForm} from 'components/course/draft/title-change-form'
-import {DescriptionChangeForm} from 'components/course/draft/description-change-form'
-import {LessonCreationDialog} from 'components/course/draft/lesson-creation-dialog'
-import {LessonList} from 'components/course/draft/lesson-list'
-import {CourseArtwork} from 'components/course/draft/course-artwork'
-import type {SanityDraftCourse, SanityLesson} from 'lib/courses'
+import {TitleChangeForm} from '@/components/course/draft/title-change-form'
+import {DescriptionChangeForm} from '@/components/course/draft/description-change-form'
+import {LessonCreationDialog} from '@/components/course/draft/lesson-creation-dialog'
+import {LessonList} from '@/components/course/draft/lesson-list'
+import {CourseArtwork} from '@/components/course/draft/course-artwork'
+import type {SanityDraftCourse, SanityLesson} from '@/lib/courses'
 
 type CoursePageLayoutProps = {
   lessons: SanityLesson[]
@@ -63,7 +63,9 @@ const DraftCourseLayout: React.FunctionComponent<
   return (
     <>
       <NextSeo
-        description={truncate(removeMarkdown(description), {length: 155})}
+        description={truncate(removeMarkdown(description.replace(/"/g, "'")), {
+          length: 155,
+        })}
         title={title}
         titleTemplate={'%s | egghead.io'}
         twitter={{
@@ -72,7 +74,10 @@ const DraftCourseLayout: React.FunctionComponent<
         }}
         openGraph={{
           title,
-          description: truncate(removeMarkdown(description), {length: 155}),
+          description: truncate(
+            removeMarkdown(description.replace(/"/g, "'")),
+            {length: 155},
+          ),
           site_name: 'egghead',
         }}
       />

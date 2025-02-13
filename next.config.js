@@ -20,6 +20,7 @@ const withMDX = require(`@next/mdx`)({
   },
 })
 const compact = require('lodash/compact')
+const {hostname} = require('os')
 
 const searchUrlRoot = `/q`
 
@@ -30,20 +31,56 @@ checkEnv({
 const appUrl = process.env.NEXT_PUBLIC_AUTH_DOMAIN
 
 const IMAGE_HOST_DOMAINS = compact([
-  `d2eip9sf3oo6c2.cloudfront.net`,
-  `dcv19h61vib2d.cloudfront.net`,
-  `image.simplecastcdn.com`,
-  `res.cloudinary.com`,
-  `app.egghead.io`,
-  `gravatar.com`,
-  process.env.NODE_ENV !== 'production' && 'via.placeholder.com',
+  {
+    protocol: 'https',
+    hostname: `*.cloudfront.net`,
+  },
+  {
+    protocol: 'https',
+    hostname: `image.simplecastcdn.com`,
+  },
+  {
+    protocol: 'https',
+    hostname: `res.cloudinary.com`,
+  },
+  {
+    protocol: 'https',
+    hostname: `app.egghead.io`,
+  },
+  {
+    protocol: 'https',
+    hostname: `gravatar.com`,
+  },
+  {
+    protocol: 'https',
+    hostname: `image.mux.com`,
+  },
+  {
+    protocol: 'https',
+    hostname: `pbs.twimg.com`,
+  },
 ])
 
 const nextConfig = {
-  transpilePackages: ['unist-util-visit'],
+  transpilePackages: ['unist-util-visit', 'react-tweet'],
   reactStrictMode: true,
   images: {
-    domains: IMAGE_HOST_DOMAINS,
+    remotePatterns: IMAGE_HOST_DOMAINS,
+    domains: [
+      'res.cloudinary.com',
+      'avatars.githubusercontent.com',
+      'pbs.twimg.com',
+      'abs.twimg.com',
+      'images.unsplash.com',
+      'image.mux.com',
+      'dl.airtable.com',
+      'og-image-react-egghead.now.sh',
+      'www.gravatar.com',
+      'files.stripe.com',
+      'media.giphy.com',
+      'media.cleanshot.cloud',
+      'egghead.io',
+    ],
   },
   async redirects() {
     return [
@@ -184,7 +221,7 @@ const legacyRoutes = [
   },
   {
     source: `/sitemap.xml.gz`,
-    destination: `${appUrl}/sitemap.xml.gz`,
+    destination: `https://egghead-sitemaps.s3.amazonaws.com/sitemaps/sitemap.xml.gz`,
     permanent: true,
   },
   {
@@ -284,11 +321,6 @@ const contentCrudRoutes = [
     permanent: true,
   },
   {
-    source: `/courses/:title/:rest(.+)`,
-    destination: `${appUrl}/courses/:title/:rest`,
-    permanent: true,
-  },
-  {
     source: `/playlists/new`,
     destination: `${appUrl}/playlists/new`,
     permanent: true,
@@ -296,11 +328,6 @@ const contentCrudRoutes = [
   {
     source: `/playlists/:title/:rest(.+)`,
     destination: `${appUrl}/playlists/:title/:rest`,
-    permanent: true,
-  },
-  {
-    source: `/lessons/:title/:rest(.+)`,
-    destination: `${appUrl}/lessons/:title/:rest`,
     permanent: true,
   },
   {

@@ -1,13 +1,13 @@
 import {get, filter} from 'lodash'
 import * as React from 'react'
 import slugify from 'slugify'
-import BestValueStamp from 'components/pricing/select-plan-new/assets/best-value-stamp'
-import ColoredBackground from 'components/pricing/select-plan-new/assets/colored-background'
+import BestValueStamp from '@/components/pricing/select-plan-new/assets/best-value-stamp'
+import ColoredBackground from '@/components/pricing/select-plan-new/assets/colored-background'
 import {keys} from 'lodash'
-import Spinner from 'components/spinner'
-import Countdown from 'components/pricing/countdown'
+import Spinner from '@/components/spinner'
+import Countdown from '@/components/pricing/countdown'
 import {fromUnixTime} from 'date-fns'
-import {Coupon, PricingPlan} from 'types'
+import {Coupon, PricingPlan} from '@/types'
 
 const PlanTitle: React.FunctionComponent<React.PropsWithChildren<unknown>> = ({
   children,
@@ -136,7 +136,6 @@ const PlanIntervalsSwitch: React.FunctionComponent<
 
 const DEFAULT_FEATURES = [
   'Full access to all the premium courses',
-  'Download courses for offline viewing',
   'Closed captions for every video',
   'Commenting and support',
   'Enhanced Transcripts',
@@ -208,6 +207,41 @@ const GetAccessButton: React.FunctionComponent<
   )
 }
 
+const PlanPercentageOff: React.FunctionComponent<
+  React.PropsWithChildren<{interval: string}>
+> = ({interval}) => {
+  switch (interval) {
+    case 'Yearly':
+      return (
+        <div className="max-w-2xl pt-4 text-sm font-light leading-tight text-gray-700 dark:text-gray-200">
+          Best Value
+        </div>
+      )
+    case 'Quarterly':
+      return (
+        <div className="max-w-2xl pt-4 text-sm font-light leading-tight text-gray-700 dark:text-gray-200">
+          Save{' '}
+          <strong className="dark:bg-amber-400 dark:text-black bg-blue-600 text-white px-px font-semibold">
+            29%
+          </strong>{' '}
+          with yearly billing
+        </div>
+      )
+    case 'Monthly':
+      return (
+        <div className="max-w-2xl pt-4 text-sm font-light leading-tight text-gray-700 dark:text-gray-200">
+          Save{' '}
+          <strong className="dark:bg-amber-400 dark:text-black bg-blue-600 text-white px-px font-semibold">
+            50%
+          </strong>{' '}
+          with yearly billing
+        </div>
+      )
+    default:
+      return null
+  }
+}
+
 type SelectPlanProps = {
   prices: any
   pricesLoading: boolean
@@ -271,6 +305,7 @@ const SelectPlanNew: React.FunctionComponent<
             </div>
           )}
         </div>
+        {!appliedCoupon && <PlanPercentageOff interval={currentPlan.name} />}
         {quantityAvailable && (
           <div className="my-4">
             <PlanQuantitySelect
@@ -293,7 +328,6 @@ const SelectPlanNew: React.FunctionComponent<
         />
       </div>
       <ColoredBackground />
-      {currentPlan.interval === 'year' && <BestValueStamp />}
     </>
   )
 }

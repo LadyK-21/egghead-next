@@ -1,17 +1,17 @@
 import groq from 'groq'
 import Link from 'next/link'
-import Markdown from 'components/markdown'
-import {track} from 'utils/analytics'
+import Markdown from '@/components/markdown'
+import {track} from '@/utils/analytics'
 import SearchInstructorEssential from '../instructor-essential'
-import {CardResource} from 'types'
-import CtaCard from 'components/search/components/cta-card'
-import {VerticalResourceCard} from 'components/card/new-vertical-resource-card'
-import ExternalTrackedLink from 'components/external-tracked-link'
+import {CardResource} from '@/types'
+import CtaCard from '@/components/search/components/cta-card'
+import {VerticalResourceCard} from '@/components/card/new-vertical-resource-card'
+import ExternalTrackedLink from '@/components/external-tracked-link'
 import Image from 'next/legacy/image'
-import {bpMinMD} from 'utils/breakpoints'
+import {bpMinMD} from '@/utils/breakpoints'
 import {get} from 'lodash'
-import Grid from 'components/grid'
-import {HorizontalResourceCard} from 'components/card/new-horizontal-resource-card'
+import Grid from '@/components/grid'
+import {HorizontalResourceCard} from '@/components/card/new-horizontal-resource-card'
 
 export default function SearchMatiasHernandez({
   instructor,
@@ -129,7 +129,7 @@ export const MatiasHernandezQuery = groq`*[_type == 'resource' && slug.current =
     	path,
       byline,
     	image,
-      'instructor': collaborators[]->[role == 'instructor'][0]{
+      'instructor': collaborators[@->.role == 'instructor'][0]->{
       	'name': person->.name
     	},
     }

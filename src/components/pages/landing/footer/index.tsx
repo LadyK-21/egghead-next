@@ -5,15 +5,15 @@ import toast from 'react-hot-toast'
 import axios from 'axios'
 import * as Yup from 'yup'
 import {FormikProps, useFormik} from 'formik'
-import {useCommerceMachine} from 'hooks/use-commerce-machine'
-import {track} from 'utils/analytics'
-import emailIsValid from 'utils/email-is-valid'
-import {useViewer} from 'context/viewer-context'
-import ParityCouponMessage from 'components/pricing/parity-coupon-message'
-import {PlanPrice} from 'components/pricing/select-plan-new/index'
-import {Coupon, StripeAccount} from 'types'
-import stripeCheckoutRedirect from 'api/stripe/stripe-checkout-redirect'
-import Countdown from 'components/pricing/countdown'
+import {useCommerceMachine} from '@/hooks/use-commerce-machine'
+import {track} from '@/utils/analytics'
+import emailIsValid from '@/utils/email-is-valid'
+import {useViewer} from '@/context/viewer-context'
+import ParityCouponMessage from '@/components/pricing/parity-coupon-message'
+import {PlanPrice} from '@/components/pricing/select-plan-new/index'
+import {Coupon, StripeAccount} from '@/types'
+import {redirectToSubscriptionCheckout} from '@/api/stripe/stripe-checkout-redirect'
+import Countdown from '@/components/pricing/countdown'
 import {fromUnixTime} from 'date-fns'
 import Join from '../join'
 import Browse from '../browse'
@@ -29,7 +29,7 @@ type FormikValues = {
 const PricingCta = () => {
   const {viewer, authToken} = useViewer()
   const {state, send, priceId, quantity, availableCoupons, currentPlan} =
-    useCommerceMachine({initialPlan: 'monthlyPrice'})
+    useCommerceMachine({initialPlan: 'annualPrice'})
 
   const formik: FormikProps<FormikValues> = useFormik<FormikValues>({
     initialValues: {
@@ -123,7 +123,7 @@ const PricingCta = () => {
         location: 'signup page',
       })
 
-      stripeCheckoutRedirect({
+      redirectToSubscriptionCheckout({
         priceId,
         email: formik.values.email,
         authToken,

@@ -11,12 +11,12 @@ import {
 import Image from 'next/legacy/image'
 import Link from 'next/link'
 import {get, isEmpty} from 'lodash'
-import {CardResource} from 'types'
+import {CardResource} from '@/types'
 import ReactMarkdown from 'react-markdown'
 import cx from 'classnames'
 import truncate from 'lodash/truncate'
-import analytics from 'utils/analytics'
-import CheckIcon from 'components/icons/check'
+import analytics from '@/utils/analytics'
+import CheckIcon from '@/components/icons/check'
 
 const HorizontalResourceCard: React.FC<
   React.PropsWithChildren<{
@@ -45,7 +45,7 @@ const HorizontalResourceCard: React.FC<
     completedCoursesIds?.some((courseId: number) => courseId === externalId)
 
   const defaultClassName =
-    'rounded-md aspect-w-4 aspect-h-2 w-full h-full transition-all ease-in-out duration-200 relative overflow-hidden group bg-gray-800  bg-opacity-60 shadow-smooth hover:bg-gray-700 hover:bg-opacity-50 overflow-hidden'
+    'rounded-md w-full h-full transition-all ease-in-out duration-200 relative overflow-hidden group bg-gray-800  bg-opacity-60 shadow-smooth hover:bg-gray-700 hover:bg-opacity-50 overflow-hidden aspect-[2/1] flex'
   return (
     <ResourceLink
       path={(resource.path || resource.url) as string}

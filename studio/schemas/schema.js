@@ -1,9 +1,3 @@
-// First, we must import the schema creator
-import createSchema from 'part:@sanity/base/schema-creator'
-// Then import schema types from any plugins that might expose them
-import schemaTypes from 'all:part:@sanity/base/schema-type'
-
-// We import object and document schemas
 import collaborator from './documents/collaborator'
 import resource from './documents/resource'
 import person from './documents/person'
@@ -29,6 +23,7 @@ import podcastSeason from './documents/podcastSeason'
 import caseStudy from './documents/caseStudy'
 import category from './documents/category'
 import section from './documents/section'
+import guide from './documents/guide'
 import authorReference from './objects/author-reference'
 import excerptPortableText from './objects/excerpt-portable-text'
 import bodyPortableText from './objects/body-portable-text'
@@ -37,48 +32,48 @@ import seo from './objects/seo'
 import productionProcessState from './objects/production-process-state'
 import muxAsset from './objects/muxAsset'
 import scrimbaResource from './objects/scrimba-resource'
+import emailBroadcast from './documents/email-broadcast'
+import emailAddress from './documents/email-address'
+import emailTemplate from './documents/email-template'
+import emailSendAt from './objects/email-send-at'
 
-// Then we give our schema to the builder and provide the result to Sanity
-export default createSchema({
-  // We name our schema
-  name: 'default',
-  // Then proceed to concatenate our document type
-  // to the ones provided by any plugins that are installed
-  types: schemaTypes.concat([
-    versionedLibrary,
-    markdownText,
-    blockContent,
-    blockText,
-    link,
-    cta,
-    ctaPlug,
-    productionProcessState,
-    // The following are document types which will appear
-    // in the studio.
-    resource,
-    imageUrl,
-    collaborator,
-    person,
-    library,
-    essentialQuestion,
-    bigIdea,
-    stringList,
-    videoResource,
-    post,
-    course,
-    lesson,
-    tip,
-    podcastEpisode,
-    podcastSeason,
-    caseStudy,
-    category,
-    authorReference,
-    excerptPortableText,
-    bodyPortableText,
-    mainImage,
-    seo,
-    muxAsset,
-    scrimbaResource,
-    section,
-  ]),
-})
+export const schema = [
+  versionedLibrary,
+  markdownText,
+  blockContent,
+  blockText,
+  link,
+  cta,
+  ctaPlug,
+  productionProcessState,
+  stringList,
+  authorReference,
+  excerptPortableText,
+  bodyPortableText,
+  mainImage,
+  seo,
+  muxAsset,
+  scrimbaResource,
+  emailBroadcast,
+  emailAddress,
+  emailTemplate,
+  emailSendAt,
+  resource,
+  imageUrl,
+  course,
+  section,
+  lesson,
+  tip,
+  videoResource,
+  post,
+  library,
+  collaborator,
+  person,
+  podcastEpisode,
+  podcastSeason,
+  caseStudy,
+  category,
+  essentialQuestion,
+  bigIdea,
+  guide,
+]

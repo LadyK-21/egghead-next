@@ -1,10 +1,10 @@
 import * as React from 'react'
 import Image from 'next/legacy/image'
-import Spinner from 'components/spinner'
-import usePurchaseAndPlay from 'hooks/use-purchase-and-play'
+import Spinner from '@/components/spinner'
+import usePurchaseAndPlay from '@/hooks/use-purchase-and-play'
 import axios from 'axios'
-import {track} from 'utils/analytics'
-import {useViewer} from 'context/viewer-context'
+import {track} from '@/utils/analytics'
+import {useViewer} from '@/context/viewer-context'
 import {LessonResource} from '../../../../types'
 import {useRouter} from 'next/router'
 
@@ -16,7 +16,9 @@ type HeaderProps = {
 type ConfirmMembershipProps = {
   sessionId: string
   viewLesson: Function
-  lesson: LessonResource
+  lesson: {
+    slug: string
+  }
 }
 
 const Illustration = () => (
@@ -101,7 +103,9 @@ const ExistingMemberConfirmation: React.FC<
   React.PropsWithChildren<{
     session: any
     viewLesson: Function
-    lesson: LessonResource
+    lesson: {
+      slug: string
+    }
   }>
 > = ({session, viewLesson, lesson}) => {
   return (
@@ -142,10 +146,8 @@ const NewMemberConfirmation: React.FC<
   React.PropsWithChildren<{
     session: any
     currentState: any
-    viewLesson: Function
-    lesson: LessonResource
   }>
-> = ({session, currentState, viewLesson, lesson}) => {
+> = ({session, currentState}) => {
   return (
     <Header
       heading={<>Thank you so much for joining egghead! </>}
@@ -269,12 +271,7 @@ const ConfirmMembership: React.FC<
           viewLesson={cleanUrlAndViewLesson}
         />
       ) : (
-        <NewMemberConfirmation
-          lesson={lesson}
-          session={session}
-          currentState={currentState}
-          viewLesson={cleanUrlAndViewLesson}
-        />
+        <NewMemberConfirmation session={session} currentState={currentState} />
       )}
     </div>
   ) : (

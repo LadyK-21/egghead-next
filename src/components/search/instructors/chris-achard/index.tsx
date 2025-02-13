@@ -1,8 +1,8 @@
 import groq from 'groq'
 
-import {VerticalResourceCard} from 'components/card/verticle-resource-card'
+import {VerticalResourceCard} from '@/components/card/verticle-resource-card'
 import {get} from 'lodash'
-import CtaCard from 'components/search/components/cta-card'
+import CtaCard from '@/components/search/components/cta-card'
 import SearchInstructorEssential from '../instructor-essential'
 
 const SearchChrisAchard = ({instructor}: {instructor: any}) => {
@@ -70,7 +70,7 @@ export const ChrisAchardQuery = groq`
        byline,
        image,
        'background': images[label == 'feature-card-background'][0].url,
-       'instructor': collaborators[]->[role == 'instructor'][0]{
+       'instructor': collaborators[@->.role == 'instructor'][0]->{
          'name': person->.name
        },
      }
@@ -83,7 +83,7 @@ export const ChrisAchardQuery = groq`
        byline,
        image,
        'background': images[label == 'feature-card-background'][0].url,
-       'instructor': collaborators[]->[role == 'instructor'][0]{
+       'instructor': collaborators[@->.role == 'instructor'][0]->{
          'name': person->.name
        },
      }

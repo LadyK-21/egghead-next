@@ -1,3 +1,4 @@
+'use client'
 import * as React from 'react'
 import {FunctionComponent} from 'react'
 import Header from './header'
@@ -8,7 +9,7 @@ const Layout: FunctionComponent<React.PropsWithChildren<unknown>> = ({
   children,
 }) => {
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen antialiased">
       <Header />
       <Main>{children}</Main>
       <Footer />

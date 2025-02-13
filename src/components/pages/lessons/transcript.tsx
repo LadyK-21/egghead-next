@@ -1,7 +1,7 @@
 import React, {FunctionComponent} from 'react'
 
 import ReactMarkdown from 'react-markdown'
-import CodeBlock from 'components/code-block'
+import CodeBlock from '@/components/code-block'
 
 type TranscriptProps = {
   className?: string
@@ -42,7 +42,7 @@ const Transcript: FunctionComponent<
     <>
       <ReactMarkdown
         skipHtml={false}
-        renderers={{
+        components={{
           code: (props) => {
             return <CodeBlock {...props} />
           },

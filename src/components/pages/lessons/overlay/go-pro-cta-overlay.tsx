@@ -1,30 +1,36 @@
 import React, {FunctionComponent} from 'react'
 import Link from 'next/link'
-import ProMemberFeatures from 'components/pro-member-features'
-import {Coupon, LessonResource} from 'types'
-import {track} from 'utils/analytics'
-import {useCommerceMachine} from 'hooks/use-commerce-machine'
-import {PlanPrice} from 'components/pricing/select-plan-new/index'
+import ProMemberFeatures from '@/components/pro-member-features'
+import {Coupon, LessonResource} from '@/types'
+import {track} from '@/utils/analytics'
+import {useCommerceMachine} from '@/hooks/use-commerce-machine'
+import {PlanPrice} from '@/components/pricing/select-plan-new/index'
 import SmallParityCouponMessage from './small-parity-coupon-message'
 import get from 'lodash/get'
 import isEmpty from 'lodash/isEmpty'
 import first from 'lodash/first'
-import {useViewer} from 'context/viewer-context'
-import emailIsValid from 'utils/email-is-valid'
+import {useViewer} from '@/context/viewer-context'
+import emailIsValid from '@/utils/email-is-valid'
 import axios from 'axios'
-import stripeCheckoutRedirect from 'api/stripe/stripe-checkout-redirect'
+import {redirectToSubscriptionCheckout} from '@/api/stripe/stripe-checkout-redirect'
 import toast from 'react-hot-toast'
-import {StripeAccount} from 'types'
+import {StripeAccount} from '@/types'
 import * as Yup from 'yup'
 import {FormikProps, useFormik} from 'formik'
-import Spinner from 'components/spinner'
+import Spinner from '@/components/spinner'
 import ConfirmMembership from './confirm-membership'
 import {useRouter} from 'next/router'
-import noop from 'utils/noop'
-import OverlayWrapper from 'components/pages/lessons/overlay/wrapper'
+import noop from '@/utils/noop'
+import OverlayWrapper from '@/components/pages/lessons/overlay/wrapper'
+import {usePathname} from 'next/navigation'
 
 type JoinCTAProps = {
-  lesson: LessonResource
+  lesson: {
+    slug: string
+    collection?: {
+      title: string
+    }
+  }
   viewLesson?: Function
 }
 
@@ -35,9 +41,8 @@ type FormikValues = {
 const GoProCtaOverlay: FunctionComponent<
   React.PropsWithChildren<JoinCTAProps>
 > = ({lesson}) => {
-  // useRouter's `asPath` can include query params, so using
-  // `window.location.pathname` instead.
-  const cleanPath = window?.location?.pathname
+  const pathname = usePathname()
+  const {collection} = lesson
 
   const {viewer, authToken} = useViewer()
   const {state, send, priceId, quantity, availableCoupons, currentPlan} =
@@ -159,13 +164,13 @@ const GoProCtaOverlay: FunctionComponent<
           location: 'lesson overlay',
         })
 
-        stripeCheckoutRedirect({
+        redirectToSubscriptionCheckout({
           priceId,
           email: formik.values.email,
           authToken,
           quantity,
           coupon: state.context.couponToApply?.couponCode,
-          successPath: cleanPath,
+          successPath: pathname ?? undefined,
         })
 
         leaveSpinningForRedirect = true
@@ -186,8 +191,8 @@ const GoProCtaOverlay: FunctionComponent<
   }
 
   switch (true) {
-    case !isEmpty(lesson.collection):
-      primaryCtaText = `Level up with ${lesson.collection.title} right now.`
+    case !isEmpty(collection):
+      primaryCtaText = `Level up with ${collection?.title} right now.`
       break
     default:
       primaryCtaText = 'Ready to take your career to the next level?'

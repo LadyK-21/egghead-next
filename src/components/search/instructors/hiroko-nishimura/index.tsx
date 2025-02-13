@@ -4,10 +4,10 @@ import Image from 'next/legacy/image'
 import {get} from 'lodash'
 import Link from 'next/link'
 import groq from 'groq'
-import {bpMinMD} from 'utils/breakpoints'
-import {track} from 'utils/analytics'
-import ExternalTrackedLink from 'components/external-tracked-link'
-import {HorizontalResourceCard} from 'components/card/horizontal-resource-card'
+import {bpMinMD} from '@/utils/breakpoints'
+import {track} from '@/utils/analytics'
+import ExternalTrackedLink from '@/components/external-tracked-link'
+import {HorizontalResourceCard} from '@/components/card/horizontal-resource-card'
 
 export default function SearchHirokoNishimura({instructor}: {instructor: any}) {
   const combinedInstructor = {...instructor}
@@ -55,7 +55,7 @@ export const hirokoNishimuraQuery = groq`*[_type == 'resource' && slug.current =
       byline,
     	image,
       'background': images[label == 'feature-card-background'][0].url,
-      'instructor': collaborators[]->[role == 'instructor'][0]{
+      'instructor': collaborators[@->.role == 'instructor'][0]->{
       	'name': person->.name
     	},
     }

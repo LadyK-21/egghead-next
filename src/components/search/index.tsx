@@ -5,33 +5,26 @@ import Hits from './hits'
 import Stats from './stats'
 import SearchBox from './search-box'
 import RefinementList from './refinement-list'
-import uniq from 'lodash/uniq'
 import Pagination from './pagination'
-import {
-  Configure,
-  InstantSearch,
-  ClearRefinements,
-  SortBy,
-} from 'react-instantsearch-dom'
+import {Configure, InstantSearch, ClearRefinements} from 'react-instantsearch'
 import {get, isEmpty} from 'lodash'
 import {useToggle} from 'react-use'
-import config from 'lib/config'
-import InstructorsIndex from 'components/search/instructors/index'
-import NoSearchResults from 'components/search/components/no-search-results'
+import config from '@/lib/config'
+import InstructorsIndex from '@/components/search/instructors/index'
+import NoSearchResults from '@/components/search/components/no-search-results'
 import SearchCuratedEssential from './curated/curated-essential'
 import SearchInstructorEssential from './instructors/instructor-essential'
 import CuratedTopicsIndex from './curated'
 import {searchQueryToArray} from '../../utils/search/topic-extractor'
-import Spinner from 'components/spinner'
+import Spinner from '@/components/spinner'
 import {Element as ScrollElement, scroller} from 'react-scroll'
 import SimpleBar from 'simplebar-react'
 import cx from 'classnames'
 import NewCuratedTopicPage from './curated/[slug]'
 import Link from 'next/link'
-import analytics from 'utils/analytics'
-
-const ALGOLIA_INDEX_NAME =
-  process.env.NEXT_PUBLIC_ALGOLIA_INDEX_NAME || 'content_production'
+import analytics from '@/utils/analytics'
+import {TYPESENSE_COLLECTION_NAME} from '@/utils/typesense'
+import PresetOptions from './components/preset-options'
 
 type SearchProps = {
   searchClient?: any
@@ -40,6 +33,7 @@ type SearchProps = {
   topic?: any
   topicData?: any
   loading?: boolean
+  onSearchStateChange?: any
 }
 
 const queryClient = new QueryClient()
@@ -47,6 +41,7 @@ const queryClient = new QueryClient()
 const Search: FunctionComponent<React.PropsWithChildren<SearchProps>> = ({
   children = [],
   searchClient,
+  onSearchStateChange,
   searchState,
   instructor,
   topic,
@@ -55,7 +50,6 @@ const Search: FunctionComponent<React.PropsWithChildren<SearchProps>> = ({
   ...rest
 }) => {
   const [isFilterShown, setShowFilter] = useToggle(false)
-
   const noInstructorsSelected = (searchState: any) => {
     return get(searchState, 'refinementList.instructor_name', []).length === 0
   }
@@ -83,12 +77,14 @@ const Search: FunctionComponent<React.PropsWithChildren<SearchProps>> = ({
     ? `Search resources by ${instructor.full_name}`
     : undefined
 
-  const shouldDisplayLandingPageForTopics = (topic: string) => {
+  const shouldDisplayLandingPageForTopics = (topic: any) => {
+    if (!topic) return false
+
     const terms = searchQueryToArray(searchState)
 
     return (
       (isEmpty(searchState.query) ||
-        (terms.includes(topic) && terms.length === 1)) &&
+        (terms.includes(topic.name) && terms.length === 1)) &&
       isEmpty(searchState.page) &&
       noInstructorsSelected(searchState)
     )
@@ -115,21 +111,20 @@ const Search: FunctionComponent<React.PropsWithChildren<SearchProps>> = ({
     setMounted(true)
   }, [])
 
-  // This is responsible for scrolling to either hits or top of the page depending
-  // on the filters applied and whether or not there is curated content present
+  // Scrolls to hits if the user is using pagination to navigate results
+  // Scrolls to the top otherwise
   React.useEffect(() => {
-    if (
-      mounted &&
-      (get(searchState, 'refinementList._tags', []).length === 1 ||
-        get(searchState, 'refinementList.instructor_name', []).length === 1)
-    ) {
-      scroller.scrollTo('hits', {
-        offset: -47,
-      })
-    } else {
-      scroller.scrollTo('page', {})
+    if (mounted) {
+      const currentPage = get(searchState, 'page', 0)
+      if (currentPage && parseInt(currentPage) > 1) {
+        scroller.scrollTo('hits', {
+          offset: -47,
+        })
+      } else {
+        scroller.scrollTo('page', {})
+      }
     }
-  }, [searchState])
+  }, [searchState, mounted])
 
   const FilterToggle = () => {
     return (
@@ -240,14 +235,22 @@ const Search: FunctionComponent<React.PropsWithChildren<SearchProps>> = ({
       <Head>
         <link
           rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/instantsearch.css@7.3.1/themes/algolia-min.css"
+          href="https://cdn.jsdelivr.net/npm/instantsearch.css@8.1.0/themes/reset-min.css"
         />
       </Head>
       <div className="dark:bg-gray-1000 bg-gray-100 relative">
         <InstantSearch
-          indexName={ALGOLIA_INDEX_NAME}
+          indexName={TYPESENSE_COLLECTION_NAME}
           searchClient={searchClient}
-          searchState={searchState}
+          onStateChange={onSearchStateChange}
+          future={{
+            preserveSharedStateOnUnmount: true,
+          }}
+          initialUiState={{
+            [TYPESENSE_COLLECTION_NAME]: {
+              ...searchState,
+            },
+          }}
           {...rest}
         >
           <Configure hitsPerPage={config.searchResultCount} />
@@ -264,23 +267,14 @@ const Search: FunctionComponent<React.PropsWithChildren<SearchProps>> = ({
                   )}
                   <div className="dark:bg-gray-900 bg-white sticky top-0 z-40 shadow-smooth flex items-center w-full border-b dark:border-white border-gray-900 dark:border-opacity-5 border-opacity-5">
                     <SearchBox placeholder={searchBoxPlaceholder} />
-                    <div className="border-l dark:border-gray-800 border-gray-100 flex items-center flex-shrink-0 space-x-2 flex-nowrap">
-                      <SortBy
-                        defaultRefinement="popular"
-                        items={[
-                          {
-                            value: 'popular',
-                            label: 'Most Popular',
-                          },
-                          {value: 'reviews', label: 'Highest Rated'},
-                          {value: 'created', label: 'Recently Added'},
-                          {value: 'completed', label: 'Most Watched'},
-                        ]}
-                      />
+                    <div className="border-l dark:border-gray-800 border-gray-100 flex items-center flex-shrink-0 space-x-2 flex-nowrap h-full">
+                      <PresetOptions />
                     </div>
                   </div>
-                  <NoSearchResults searchQuery={searchState.query} />
-                  {loading && shouldDisplayLandingPageForTopics(topic.name) && (
+                  {!loading && (
+                    <NoSearchResults searchQuery={searchState?.query ?? ''} />
+                  )}
+                  {loading && shouldDisplayLandingPageForTopics(topic) && (
                     <div className="flex py-8 justify-center">
                       <Spinner
                         size={8}
@@ -288,27 +282,25 @@ const Search: FunctionComponent<React.PropsWithChildren<SearchProps>> = ({
                       />
                     </div>
                   )}
-                  {!loading &&
-                    !isEmpty(topic) &&
-                    shouldDisplayLandingPageForTopics(topic.name) && (
-                      <>
-                        {isEmpty(topicData) ? (
-                          CuratedTopicPage && (
-                            // TODO: create more topic pages in Sanity and deprecate
-                            // following component in favor of approach below
-                            <div className="px-5">
-                              <CuratedTopicPage topic={topic} />
-                            </div>
-                          )
-                        ) : (
-                          // dynamic topic from page resource in Sanity
-                          <NewCuratedTopicPage
-                            topicData={topicData}
-                            topic={topic}
-                          />
-                        )}
-                      </>
-                    )}
+                  {!loading && shouldDisplayLandingPageForTopics(topic) && (
+                    <>
+                      {isEmpty(topicData) ? (
+                        CuratedTopicPage && (
+                          // TODO: create more topic pages in Sanity and deprecate
+                          // following component in favor of approach below
+                          <div className="px-5">
+                            <CuratedTopicPage topic={topic} />
+                          </div>
+                        )
+                      ) : (
+                        // dynamic topic from page resource in Sanity
+                        <NewCuratedTopicPage
+                          topicData={topicData}
+                          topic={topic}
+                        />
+                      )}
+                    </>
+                  )}
 
                   {!isEmpty(instructor) &&
                     shouldDisplayLandingPageForInstructor(instructor.slug) && (
@@ -317,7 +309,7 @@ const Search: FunctionComponent<React.PropsWithChildren<SearchProps>> = ({
                       </div>
                     )}
                   <ScrollElement name="hits" />
-                  <Stats searchQuery={searchState.query} />
+                  <Stats searchQuery={searchState?.query ?? ''} />
                   <h2 className="sm:px-5 px-3 mt-4 lg:text-2xl sm:text-xl text-lg dark:text-white font-semibold leading-tight">
                     Search Results
                   </h2>

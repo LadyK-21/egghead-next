@@ -1,15 +1,14 @@
 import * as React from 'react'
-import useLastResource from 'hooks/use-last-resource'
+import useLastResource from '@/hooks/use-last-resource'
 import {isEmpty} from 'lodash'
 import Link from 'next/link'
 import Image from 'next/legacy/image'
-import Spinner from 'components/spinner'
-import {IconTwitter} from 'components/share'
-import usePurchaseAndPlay from 'hooks/use-purchase-and-play'
-import {Topic} from 'types'
-import PostPurchase from 'components/survey/tally/post-purchase'
-import {trpc} from 'trpc/trpc.client'
-import {useAccount} from 'hooks/use-account'
+import Spinner from '@/components/spinner'
+import {IconTwitter} from '@/components/share'
+import usePurchaseAndPlay from '@/hooks/use-purchase-and-play'
+import {Topic} from '@/types'
+import {trpc} from '@/app/_trpc/client'
+import Stripe from 'stripe'
 
 type HeaderProps = {
   heading: React.ReactElement
@@ -23,9 +22,10 @@ type ConfirmMembershipProps = {
 const ExistingMemberConfirmation: React.FC<
   React.PropsWithChildren<{session_id: string}>
 > = ({session_id}) => {
-  const {data} = trpc.stripe.checkoutSessionById.useQuery({
-    checkoutSessionId: session_id as string,
-  })
+  const {data, status: postCheckoutStatus} =
+    trpc.stripe.postCheckoutDetails.useQuery({
+      checkoutSessionId: session_id as string,
+    })
 
   return data ? (
     <>
@@ -42,7 +42,10 @@ const ExistingMemberConfirmation: React.FC<
               and sent a receipt to <strong>{data.customer.email}</strong>.
             </p>
 
-            <LinkToLatestInvoice />
+            <LinkToLatestInvoice
+              charge={data.charge}
+              chargeLoadingStatus={postCheckoutStatus}
+            />
             <Support />
             <p className="pt-5 text-lg text-center">
               You can now learn from all premium resources on egghead, including
@@ -59,25 +62,18 @@ const ExistingMemberConfirmation: React.FC<
           <StartLearning />
         </div>
       </div>
-
-      <PostPurchase email={data.customer.email} />
     </>
   ) : null
 }
 
-const LinkToLatestInvoice = () => {
-  const {account} = useAccount()
-  const {data: subscriptionData, status: subscriptionLoadingStatus} =
-    trpc.subscriptionDetails.forStripeCustomerId.useQuery({
-      stripeCustomerId: account?.stripe_customer_id,
-    })
-  const {data: charge, status: chargeLoadingStatus} =
-    trpc.stripe.chargeById.useQuery({
-      chargeId: subscriptionData?.latestInvoice?.charge as string,
-    })
-
-  const dataLoading =
-    subscriptionLoadingStatus === 'loading' || chargeLoadingStatus === 'loading'
+const LinkToLatestInvoice = ({
+  charge,
+  chargeLoadingStatus,
+}: {
+  charge: Stripe.Charge | null
+  chargeLoadingStatus: string
+}) => {
+  const dataLoading = chargeLoadingStatus === 'loading'
 
   return (
     <div className="mt-5">
@@ -338,6 +334,64 @@ export const ConfirmMembership: React.FC<
   )
 }
 
+export const ConfirmLifetimeMembership: React.FC<
+  React.PropsWithChildren<ConfirmMembershipProps>
+> = ({session_id}) => {
+  // TODO: can this line be deleted?
+  const [alreadyAuthenticated, currentState] = usePurchaseAndPlay()
+
+  if (!session_id) {
+    return null
+  }
+
+  const {data, status: postCheckoutStatus} =
+    trpc.stripe.postCheckoutDetails.useQuery({
+      checkoutSessionId: session_id as string,
+    })
+
+  if (!data) {
+    return null
+  }
+
+  return (
+    <div className="w-full max-w-screen-lg mx-auto space-y-16 text-gray-900 dark:text-white">
+      <Header
+        heading={<>Thank you so much for joining egghead!</>}
+        primaryMessage={
+          <>
+            <p className="text-lg text-center">
+              We've charged your credit card{' '}
+              <strong>
+                ${(data?.session?.amount_total || 0) / 100} for your lifetime
+                egghead membership
+              </strong>{' '}
+              and sent a receipt to <strong>{data.customer.email}</strong>.
+            </p>
+
+            <LinkToLatestInvoice
+              charge={data.charge}
+              chargeLoadingStatus={postCheckoutStatus}
+            />
+            <Support />
+            <p className="pt-5 text-lg text-center">
+              You can now learn from all premium resources on egghead, including
+              courses, talks, podcasts, articles, and more. Enjoy!
+            </p>
+          </>
+        }
+      />
+
+      <div className="space-y-10">
+        <PopularTopics />
+        <LastResource />
+        <div className="flex justify-center">
+          <StartLearning />
+        </div>
+      </div>
+    </div>
+  )
+}
+
 const topics: Topic[] = [
   {
     title: 'React',
@@ -377,7 +431,7 @@ const topics: Topic[] = [
   {
     title: 'TypeScript',
     path: '/q/typescript',
-    slug: 'typescript',
+    slug: '@/typescript',
     image:
       'https://d2eip9sf3oo6c2.cloudfront.net/tags/images/000/000/377/thumb/typescriptlang.png',
   },
